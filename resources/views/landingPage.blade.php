@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page - PTN Impian</title>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <style>
         * {
             box-sizing: border-box;
@@ -317,6 +320,9 @@
         <button class="btn-clear">Clear</button>
     </div>
 
+    @include('content')
+    @include('footer')
+
     <script>
         const dropdownButtons = document.querySelectorAll('.dropdown-btn');
 
@@ -341,6 +347,43 @@
                     menu.style.display = 'none';
                 });
             }
+        });
+    </script>
+
+    <!-- js untuk map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const map = L.map('map').setView([-2.5, 118], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // data lokasi kordinat masing" ptn
+        const ptn = [
+            {
+                nama: "Universitas Sumatera Utara",
+                lat: 3.5619,
+                lng: 98.6561
+            },
+            {
+                nama: "Universitas Indonesia",
+                lat: -6.3626,
+                lng: 106.8249
+            },
+            {
+                nama: "Universitas Gadjah Mada",
+                lat: -7.7704,
+                lng: 110.3777
+            }
+        ];
+
+        // buat marker
+        ptn.forEach(kampus => {
+            L.marker([kampus.lat, kampus.lng])
+                .addTo(map)
+                .bindPopup(`<b>${kampus.nama}</b>`);
         });
     </script>
 </body>

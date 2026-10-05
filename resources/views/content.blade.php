@@ -1,6 +1,5 @@
 <style>
     body {
-        font-family: Georgia, serif;
         background-color: #f8fafc;
     }
     .container {

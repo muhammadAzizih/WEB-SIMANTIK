@@ -8,7 +8,7 @@
         padding: 20px 100px;
         box-sizing: border-box;
         font-family: 'Libre Caslon Condensed', serif;
-        color: #111;
+        color: #111827;
     }
 
     .navbar-title {
@@ -29,18 +29,19 @@
         display: flex;
         flex-direction: column;
         line-height: 1;
+        font-family: Georgia, serif;
     }
 
     .navbar-title-name {
-        font-size: 21px;
+        font-size: 20px;
         font-weight: 700;
         line-height: 22px;
         margin-top: -4px;
     }
 
     .navbar-title-sub {
-        font-size: 18px;
-        line-height: 22px;
+        font-size: 15px;
+        line-height: 20px;
         margin: 3px 0 0 3px;
     }
 
@@ -54,23 +55,35 @@
 
     .navbar-menu li a {
         text-decoration: none;
-        color: #111;
-        font-size: 16px;
+        color: #111827;
+        font-size: 15px;
+        font-weight: 500;
+        font-family: sans-serif;
+        transition: color 0.2s ease, color 0.25s ease, transform 0.25s ease
         position: relative;
-        top: 1px;
+        top: 0;
+        padding: 8px 12px;
+        border-radius: 20px;
+
+    }
+
+    .navbar-menu li a:hover {
+        color: #111827;
+        background: #FFEBD2;
+        transform: translateY(-2px);
+
     }
 
     .navbar-menu li:nth-child(1) {
-        margin-right: 27px;
-    }
-
-    .navbar-menu li:nth-child(2) {
         margin-right: 15px;
     }
 
+    .navbar-menu li:nth-child(2) {
+        margin-right: 3px;
+    }
+
     .navbar-menu li:nth-child(3) a {
-        top: -2px;
-        font-size: 16.5px;
+        margin-right: 0;
     }
 </style>
 

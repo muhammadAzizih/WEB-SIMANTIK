@@ -17,14 +17,14 @@
         body {
             margin: 0;
             background: #fff;
-            font-family: 'Libre Caslon Condensed', serif;
-            color: #111;
+            font-family: Georgia, serif;
+            color: #111827;
             min-height: 100vh;
         }
 
         .univ-header {
             height: 137px;
-            padding: 24px 100px 0 100px;
+            padding: 24px 100px 0;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -51,17 +51,20 @@
 
         .univ-name {
             margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            line-height: 26px;
+            font-size: 20px;
+            font-weight: 700; 
+            line-height: 1.2;
+            color: #111827;
         }
 
         .univ-location {
-            margin-top: 2px;
+            margin-top: 5px;
             height: 18px;
             display: flex;
             align-items: center;
-            font-size: 13px;
+            font-family: sans-serif;
+            font-size: 12px;
+            color: #6b7280;
         }
 
         .univ-location svg {
@@ -77,11 +80,13 @@
         }
 
         .badge {
-            height: 21px;
-            padding: 0 12px;
-            background: #C5CDD8;
-            border-radius: 8px;
-            font-size: 12px;
+            height: 22px;
+            padding: 6px 12px;
+            background: #e5e7eb;
+            color: #4b5563;
+            border-radius: 6px;
+            font-family: sans-serif;
+            font-size: 11px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -98,7 +103,7 @@
             border: 2px solid #CCD3DA;
             border-radius: 8px;
             background: #fff;
-            font-family: inherit;
+            font-family: sans-serif;
             font-size: 13px;
             color: #111;
             display: inline-flex;
@@ -106,6 +111,11 @@
             justify-content: center;
             cursor: pointer;
             text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-outline:hover {
+            background: #f3f4f6;
         }
 
         .btn-website {
@@ -123,7 +133,7 @@
 
         .tabs {
             height: 48px;
-            padding: 3px 100px 0 100px;
+            padding: 3px 100px 0;
             display: flex;
             align-items: flex-start;
             border-bottom: 2px solid #E6E6E6;
@@ -131,44 +141,53 @@
 
         .tab {
             height: 41px;
+            padding: 0 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 19px;
+            font-family: Georgia, serif;
+            font-size: 16px;
             font-weight: 700;
-            color: #111;
+            color: #111827;
             text-decoration: none;
             position: relative;
+            transition: background-color 0.2s ease;
         }
 
         .tab.active {
-            width: 93px;
-            background: #FFEBD2;
+            background: transparent;
             border-radius: 21px;
         }
 
         .tab.active::after {
             content: "";
             position: absolute;
-            left: 5px;
-            right: 6px;
+            left: 10px;
+            right: 10px;
             bottom: -5px;
             height: 3px;
             background: #FFBF5F;
         }
 
-        .tab-fakultas { margin-left: 43px; }
-        .tab-biaya    { margin-left: 44px; }
+        .tab:hover {
+            background: #FFEBD2;
+            border-radius: 21px;
+        }
+
+        .tab-fakultas { margin-left: 31px; }
+        .tab-biaya    { margin-left: 31px; }
 
         .content {
-            padding: 45px 100px 0 100px;
+            padding: 45px 100px 0;
         }
 
         .content p {
             margin: 0;
-            font-size: 13.5px;
-            line-height: 21px;
             max-width: 970px;
+            font-family: sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #6b7280;
         }
 
         .chat-fab {
@@ -186,6 +205,11 @@
             cursor: pointer;
         }
 
+         .chat-fab:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
         .chat-fab svg {
             width: 48px;
             height: 36px;
@@ -199,7 +223,7 @@
 
     <section class="univ-header">
         <div class="univ-left">
-            <img class="univ-logo" src="{{ asset('images/logo-usu.png') }}" alt="Logo Universitas Sumatera Utara">
+            <img class="univ-logo"src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWlQmkGCv5tXyoGZldrWLLL98jjMZj6hD6fY6hMFiAoXpEVWOxeEHXyCgQ_UpSNvZwAzSsSIqkTYsqYaApXI1XKgaSt95VG0XTSJk36NWZeBWZby33kNInbdDkWOFujNFJqYuIZLxGue-5ZnYxL9prINUdw09Ik_0H_qMPG7swTh2PSD92Zf7D63skKA/s1560/Logo+Universitas+Sumatera+Utara+(USU).png"alt="Logo Universitas Sumatera Utara">
 
             <div class="univ-info">
                 <h1 class="univ-name">Universitas Sumatera Utara</h1>
@@ -231,8 +255,8 @@
     </section>
 
     <nav class="tabs">
-        <a href="#profil" class="tab active">Profil</a>
-        <a href="#fakultas" class="tab tab-fakultas">Fakultas &amp; Prodi</a>
+        <a href="#profil" class="tab tabprofil">Profil</a>
+        <a href="/fakultas" class="tab tab-fakultas">Fakultas &amp; Prodi</a>
         <a href="#biaya" class="tab tab-biaya">Biaya Kuliah</a>
     </nav>
 

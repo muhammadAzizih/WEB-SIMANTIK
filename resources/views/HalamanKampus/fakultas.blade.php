@@ -215,7 +215,7 @@
         </a>
     </nav>
     <section class="fk-list" aria-label="Daftar fakultas">
-        <a href="#" class="fk-row"
+        <a href="/prodi" class="fk-row"
            title="Fakultas Ilmu Komputer dan Teknologi Informasi">
 
             <span class="fk-row__name">

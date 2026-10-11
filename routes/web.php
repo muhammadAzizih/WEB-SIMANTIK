@@ -10,6 +10,10 @@ Route::get('/fakultas', function () {
     return view('HalamanKampus.fakultas');
 });
 
+Route::get('/prodi', function () {
+    return view('HalamanKampus.prodi');
+});
+
 Route::get('/', function() {
     return view('landingPage');
 });

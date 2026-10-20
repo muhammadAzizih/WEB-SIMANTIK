@@ -320,6 +320,7 @@
         <button class="btn-clear">Clear</button>
     </div>
 
+    @include('chatbot')
     @include('content')
     @include('footer')
 

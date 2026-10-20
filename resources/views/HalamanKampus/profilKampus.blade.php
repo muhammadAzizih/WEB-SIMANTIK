@@ -1,283 +1,256 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Profil Kampus</title>
+@include('navbar')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Anton+SC&family=Bebas+Neue&family=Libre+Caslon+Condensed:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alike&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<header class="univ-header">
+    <div class="univ-logo">USU</div>
+    <div class="univ-info">
+        <h1>Universitas Sumatera Utara</h1>
+        <div class="univ-location">
+            <svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M7 0C3.1 0 0.5 2.8 0.5 6.2c0 3.3 3.3 7 6.5 8.6c3.2-1.6 6.5-5.3 6.5-8.6C13.5 2.8 10.9 0 7 0z" fill="#000"/>
+                <circle cx="7" cy="6" r="2.4" fill="#fff"/>
+                <ellipse cx="7" cy="16.6" rx="4.2" ry="2.3" fill="none" stroke="#000" stroke-width="1.4"/>
+            </svg>
+            <span>Medan, Sumatera Utara</span>
+        </div>
+        <div class="univ-chips">
+            <span class="univ-chip">PTN</span>
+            <span class="univ-chip">Akreditasi Unggul</span>
+        </div>
+        <a class="univ-website" href >Website</a>
+    </div>
 
-        body {
-            margin: 0;
-            background: #fff;
-            font-family: Georgia, serif;
-            color: #111827;
-            min-height: 100vh;
-        }
+    <div class="univ-actions">
+        <a href="https://www.usu.ac.id" target="_blank" rel="noopener" class="btn-outline btn-website">Website Resmi</a>
+        <button type="button" class="btn-outline btn-fav" aria-label="Simpan ke favorit">
+            <svg viewBox="0 0 28 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">                    <path d="M14 23.2C6 17 1.5 12.7 1.5 8c0-3.4 2.6-6 5.9-6c2.6 0 5 1.5 6.6 3.8C15.600 3.500 18 2 20.600 2c3.300 0 5.900 2.600 5.900 6c0 4.700-4.500 9-12.500 15.200z" fill="none" stroke="#AEB6BF" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
+</header>
 
-        .univ-header {
-            height: 137px;
-            padding: 24px 100px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #E6E6E6;
-        }
+<nav class="tabs">
+    <a href="#profil">Profil</a>
+    <a href="#fakultas">Fakultas &amp; Program Studi</a>
+    <a href="#lokasi">Lokasi Kampus</a>
+    <a href="#biaya">Biaya Kuliah</a>
+</nav>
 
-        .univ-left {
-            display: flex;
-            align-items: flex-start;
-        }
+<section id="profil">
+    <h2>Profil</h2>
+    <p class="content">Universitas Sumatera Utara (USU) adalah salah satu perguruan tinggi negeri terbaik di Indonesia yang berlokasi di Medan, Sumatera Utara. Awalnya berdiri pada tahun 1952 dengan nama Yayasan Universitet Sumatera Utara, USU telah berkembang menjadi universitas unggulan yang menawarkan berbagai program studi yang berkualitas</p>
+    <div class="meta">
+        <div><small>Jenis Institusi</small>Universitas</div>
+        <div><small>Tahun Berdiri</small>1952</div>
+        <div><small>Akreditasi</small>Unggul</div>
+        <div><small>Fakultas</small>10</div>
+    </div>
+</section>
 
-        .univ-logo {
-            width: 98px;
-            height: 98px;
-            border-radius: 50%;
-            object-fit: contain;
-            display: block;
-        }
+<section id="fakultas">
+    <h2>Fakultas &amp; Program Studi</h2>
+    <input class="radio-hidden" type="radio" name="tampilan" id="tampil-fakultas" checked>
+    <input class="radio-hidden" type="radio" name="tampilan" id="tampil-prodi">
+    <div class="pills">
+        <label class="pill" for="tampil-fakultas">Fakultas</label>
+        <label class="pill" for="tampil-prodi">Program Studi</label>
+    </div>
 
-        .univ-info {
-            margin-left: 30px;
-            padding-top: 2px;
-        }
+    <div class="listFakultas">
+        <a class="row" href="{{ route('fakultas') }}">
+            <div class="row-title">Fakultas Ilmu Komputer dan Teknologi Informasi</div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+        <a class="row" href="#">
+            <div class="row-title">Fakultas Ilmu Budaya</div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+        <a class="row" href="#">
+            <div class="row-title">Fakultas Teknik</div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+    </div>
 
-        .univ-name {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 700; 
-            line-height: 1.2;
-            color: #111827;
-        }
-
-        .univ-location {
-            margin-top: 5px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            font-family: sans-serif;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .univ-location svg {
-            width: 13px;
-            height: 20px;
-            margin: 0 13px 0 2px;
-        }
-
-        .univ-badges {
-            margin-top: 14px;
-            display: flex;
-            gap: 11px;
-        }
-
-        .badge {
-            height: 22px;
-            padding: 6px 12px;
-            background: #e5e7eb;
-            color: #4b5563;
-            border-radius: 6px;
-            font-family: sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .univ-actions {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-        }
-
-        .btn-outline {
-            height: 37px;
-            border: 2px solid #CCD3DA;
-            border-radius: 8px;
-            background: #fff;
-            font-family: sans-serif;
-            font-size: 13px;
-            color: #111;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.2s ease;
-        }
-
-        .btn-outline:hover {
-            background: #f3f4f6;
-        }
-
-        .btn-website {
-            width: 119px;
-        }
-
-        .btn-fav {
-            width: 47px;
-        }
-
-        .btn-fav svg {
-            width: 28px;
-            height: 25px;
-        }
-
-        .tabs {
-            height: 48px;
-            padding: 3px 100px 0;
-            display: flex;
-            align-items: flex-start;
-            border-bottom: 2px solid #E6E6E6;
-        }
-
-        .tab {
-            height: 41px;
-            padding: 0 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Georgia, serif;
-            font-size: 16px;
-            font-weight: 700;
-            color: #111827;
-            text-decoration: none;
-            position: relative;
-            transition: background-color 0.2s ease;
-        }
-
-        .tab.active {
-            background: transparent;
-            border-radius: 21px;
-        }
-
-        .tab.active::after {
-            content: "";
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            bottom: -5px;
-            height: 3px;
-            background: #FFBF5F;
-        }
-
-        .tab:hover {
-            background: #FFEBD2;
-            border-radius: 21px;
-        }
-
-        .tab-fakultas { margin-left: 31px; }
-        .tab-biaya    { margin-left: 31px; }
-
-        .content {
-            padding: 45px 100px 0;
-        }
-
-        .content p {
-            margin: 0;
-            max-width: 970px;
-            font-family: sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #6b7280;
-        }
-
-        .chat-fab {
-            position: fixed;
-            right: 41px;
-            bottom: 36px;
-            width: 82px;
-            height: 70px;
-            border-radius: 22px;
-            background: #EEEEEE;
-            border: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-         .chat-fab:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .chat-fab svg {
-            width: 48px;
-            height: 36px;
-        }
-    </style>
-</head>
-<body>
-
-    
-    @include('navbar')
-
-    <section class="univ-header">
-        <div class="univ-left">
-            <img class="univ-logo"src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWlQmkGCv5tXyoGZldrWLLL98jjMZj6hD6fY6hMFiAoXpEVWOxeEHXyCgQ_UpSNvZwAzSsSIqkTYsqYaApXI1XKgaSt95VG0XTSJk36NWZeBWZby33kNInbdDkWOFujNFJqYuIZLxGue-5ZnYxL9prINUdw09Ik_0H_qMPG7swTh2PSD92Zf7D63skKA/s1560/Logo+Universitas+Sumatera+Utara+(USU).png"alt="Logo Universitas Sumatera Utara">
-
-            <div class="univ-info">
-                <h1 class="univ-name">Universitas Sumatera Utara</h1>
-
-                <div class="univ-location">
-                    <svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M7 0C3.1 0 0.5 2.8 0.5 6.2c0 3.3 3.3 7 6.5 8.6c3.2-1.6 6.5-5.3 6.5-8.6C13.5 2.8 10.9 0 7 0z" fill="#000"/>
-                        <circle cx="7" cy="6" r="2.4" fill="#fff"/>
-                        <ellipse cx="7" cy="16.6" rx="4.2" ry="2.3" fill="none" stroke="#000" stroke-width="1.4"/>
-                    </svg>
-                    <span>Medan, Sumatera Utara</span>
-                </div>
-
-                <div class="univ-badges">
-                    <span class="badge">PTN</span>
-                    <span class="badge">Akreditasi Unggul</span>
-                </div>
+    <div class="listProdi">
+        <a class="row" href="{{ route('prodi') }}">
+            <div class="row-title">S1 Teknologi Informasi
+                <small>Fakultas Ilmu Komputer dan Teknologi Informasi</small>
             </div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+        <a class="row" href="#">
+            <div class="row-title">S1 Ilmu Komputer
+                <small>Fakultas Ilmu Komputer dan Teknologi Informasi</small>
+            </div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+        <a class="row" href="#">
+            <div class="row-title">S2 Kecerdasan Buatan
+                <small>Fakultas Ilmu Komputer dan Teknologi Informasi</small>
+            </div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+        <a class="row" href="#">
+            <div class="row-title">S1 Teknik Sipil
+                <small>Fakultas Teknik</small>
+            </div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+  </div>
+</section>
+
+<section id="lokasi">
+  <h2 style="text-align:center">Lokasi Kampus</h2>
+  <div class="lokasi-list">
+    <div class="lokasi-card">
+        <h3>📍 USU Kampus 1</h3>
+        <p><b>Medan, Sumatera Utara</b><br>Jl. Dr. T. Mansur No. 9</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=Universitas+Sumatera+Utara+Medan" target="_blank" rel="noopener">Lihat Peta</a>
+    </div>
+    <div class="lokasi-card">
+        <h3>📍 USU Kampus 2</h3>
+        <p><b>Medan, Sumatera Utara</b></p>
+        <a href="#">Lihat Peta</a>
+    </div>
+    <div class="lokasi-card">
+        <h3>📍 USU Kampus 3</h3>
+        <p><b>Deli Serdang, Sumatera Utara</b></p>
+        <a href="#">Lihat Peta</a>
+    </div>
+  </div>
+</section>
+
+<section id="biaya">
+    <h2 style="text-align:center">Biaya UKT</h2>
+    <input class="radio-hidden" type="radio" name="jenjang" id="j-d3">
+    <input class="radio-hidden" type="radio" name="jenjang" id="j-d4">
+    <input class="radio-hidden" type="radio" name="jenjang" id="j-s1" checked>
+    <input class="radio-hidden" type="radio" name="jenjang" id="j-s2">
+    <input class="radio-hidden" type="radio" name="jenjang" id="j-s3">
+
+    <div class="tab-jenjang">
+        <label class="pill" for="j-d3">Diploma 3</label>
+        <label class="pill" for="j-d4">Diploma 4</label>
+        <label class="pill" for="j-s1">Sarjana</label>
+        <label class="pill" for="j-s2">Magister</label>
+        <label class="pill" for="j-s3">Pendidikan Doktor</label>
+    </div>
+
+    <div class="panel panel-s1">
+        <div class="tabel-wrapper">
+            <table>
+                <tr>
+                    <th>Program Studi</th>
+                    <th>UKT 1</th>
+                    <th>UKT 2</th>
+                    <th>UKT 3</th>
+                    <th>UKT 4</th>
+                    <th>UKT 5</th>
+                    <th>UKT 6</th>
+                </tr>
+                
+                <tr>
+                    <td>Teknologi Informasi</td>
+                    <td>Rp 500.000</td>
+                    <td>Rp 1.000.000</td>
+                    <td>Rp 1.500.000</td>
+                    <td>Rp 2.000.000</td>
+                    <td>Rp 3.000.000</td>
+                    <td>Rp 3.600.000</td>
+                </tr>
+                
+                <tr>
+                    <td>Ilmu Komputer</td>
+                    <td>Rp 550.000</td>
+                    <td>Rp 1.100.000</td>
+                    <td>Rp 1.650.000</td>
+                    <td>Rp 2.200.000</td>
+                    <td>Rp 3.300.000</td>
+                    <td>Rp 3.960.000</td>
+                </tr>
+            </table>
         </div>
-
-        <div class="univ-actions">
-            <a href="https://www.usu.ac.id" target="_blank" rel="noopener" class="btn-outline btn-website">Website Resmi</a>
-            <button type="button" class="btn-outline btn-fav" aria-label="Simpan ke favorit">
-                <svg viewBox="0 0 28 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M14 23.2C6 17 1.5 12.7 1.5 8c0-3.4 2.6-6 5.9-6c2.6 0 5 1.5 6.6 3.8C15.600 3.500 18 2 20.600 2c3.300 0 5.900 2.600 5.900 6c0 4.700-4.500 9-12.500 15.200z" fill="none" stroke="#AEB6BF" stroke-width="2" stroke-linejoin="round"/>
-                </svg>
-            </button>
+    </div>
+    
+    <div class="panel panel-d3">
+        <div class="tabel-wrapper">
+            <table>
+                <tr>
+                    <th>Program Studi</th>
+                    <th>UKT 1</th>
+                    <th>UKT 2</th>
+                    <th>UKT 3</th>
+                    <th>UKT 4</th>
+                    <th>UKT 5</th>
+                    <th>UKT 6</th>
+                </tr>
+                <tr>
+                    <td colspan="7" class="kosong">Belum tersedia</td>
+                </tr>
+            </table>
         </div>
-    </section>
+    </div>
+    
+    <div class="panel panel-d4">
+        <div class="tabel-wrapper">
+            <table>
+                <tr>
+                    <th>Program Studi</th>
+                    <th>UKT 1</th>
+                    <th>UKT 2</th>
+                    <th>UKT 3</th>
+                    <th>UKT 4</th>
+                    <th>UKT 5</th>
+                    <th>UKT 6</th>
+                </tr>
+                <tr>
+                    <td colspan="7" class="kosong">Belum tersedia</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
-    <nav class="tabs">
-        <a href="#profil" class="tab tabprofil">Profil</a>
-        <a href="/fakultas" class="tab tab-fakultas">Fakultas &amp; Prodi</a>
-        <a href="#biaya" class="tab tab-biaya">Biaya Kuliah</a>
-    </nav>
+    <div class="panel panel-s2">
+        <div class="tabel-wrapper">
+            <table>
+                <tr>
+                    <th>Program Studi</th>
+                    <th>UKT 1</th>
+                    <th>UKT 2</th>
+                    <th>UKT 3</th>
+                    <th>UKT 4</th>
+                    <th>UKT 5</th>
+                    <th>UKT 6</th>
+                </tr>
+                <tr>
+                    <td colspan="7" class="kosong">Belum tersedia</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
-    <main class="content" id="profil">
-        <p>
-            Universitas Sumatera Utara (USU) adalah salah satu perguruan tinggi negeri terbaik di Indonesia yang
-            berlokasi di Medan, Sumatera Utara. Awalnya berdiri pada tahun 1952 dengan nama Yayasan Universitet
-            Sumatera Utara, USU telah berkembang menjadi universitas unggulan yang menawarkan berbagai program
-            studi yang berkualitas.
-        </p>
-    </main>
+    <div class="panel panel-s3">
+        <div class="tabel-wrapper">
+            <table>
+                <tr>
+                    <th>Program Studi</th>
+                    <th>UKT 1</th>
+                    <th>UKT 2</th>
+                    <th>UKT 3</th>
+                    <th>UKT 4</th>
+                    <th>UKT 5</th>
+                    <th>UKT 6</th>
+                </tr>
+                <tr>
+                    <td colspan="7" class="kosong">Belum tersedia</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</section>
 
-    <button type="button" class="chat-fab" aria-label="Buka chat">
-        <svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 17C3 9 10 3 20 3s17 6 17 14s-7 14-17 14c-2 0-4-.3-5.800-.8L7 33l1.600-6C5 24.500 3 21 3 17z" fill="#7C7C7C"/>
-            <path d="M33 11c8 .6 13 5 13 11c0 3.500-1.800 6.500-4.800 8.500L42.500 35l-5.500-2.300c-1.200.3-2.500.5-3.800.5c-2.700 0-5.200-.7-7.200-1.900C31 29.500 36 26 36 21c0-3.800-1.200-7.800-3-10z" fill="#7C7C7C" opacity=".75"/>
-            <circle cx="13" cy="17" r="2.300" fill="#EEE"/>
-            <circle cx="20.500" cy="17" r="2.300" fill="#EEE"/>
-            <circle cx="28" cy="17" r="2.300" fill="#EEE"/>
-        </svg>
-    </button>
-
-</body>
-</html>
+<div class="copyright">
+    © 2026 PTN Impian. Seluruh Hak Cipta Dilindungi Undang-Undang
+</div>

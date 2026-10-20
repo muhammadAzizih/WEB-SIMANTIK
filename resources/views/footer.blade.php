@@ -1,11 +1,11 @@
      <style>
         .footer-container {
         background-color: #ffffff;
-        border-top: 2px solid #f97316;
-        color: #4b5563;
+        border-top: 2px solid #ee7f3e;
+        color: #1a1a1a;
         font-family: Georgia, serif;
         font-size: 14px;
-        padding: 40px 32px 24px;
+        padding: 40px 6vw 24px;
         position: relative;
     }
     .footer-content {
@@ -22,7 +22,7 @@
         margin-bottom: 16px;
     }
     .logo-box {
-        border: 2px solid #334155;
+        border: 2px solid #c9d0d9;
         border-radius: 8px;
         padding: 6px;
         width: 48px;
@@ -33,28 +33,29 @@
         text-align: center;
         font-size: 10px;
         font-weight: bold;
-        color: #f97316;
+        color: #ee7f3e;
+        flex-srink: 0;
     }
     .brand-title {
         font-size: 20px;
         font-weight: bold;
-        color: #111827;
+        color: #1a1a1a;
         margin: 0;
     }
     .brand-subtitle {
         font-size: 12px;
-        color: #6b7280;
+        color: #666666;
         margin: 0;
         font-family: sans-serif;
     }
     .section-title {
-        color: #f97316;
+        color: #ee7f3e;
         font-weight: 600;
         font-size: 16px;
-        border-bottom: 2px solid #f97316;
+        border-bottom: 2px solid #ee7f3e;
         display: inline-block;
-        padding-bottom: 2px;
-        margin-bottom: 12px;
+        padding-bottom: 4px;
+        margin: 0 0 12px;
     }
     .footer-menu {
         list-style: none;
@@ -65,10 +66,12 @@
         margin-bottom: 15px;
     }
     .footer-menu a {
-        color: #4b5563;
+        color: #1a1a1a;
         text-decoration: none;
+        transition: color 0.2s ease;
     }
     .footer-menu a:hover {
+        color: #ee7f3e;
         text-decoration: underline;
     }
     .contact-item {
@@ -77,18 +80,20 @@
         gap: 8px;
     }
     .icon {
-        color: #f97316;
+        color: #ee7f3e;
     }
     .copyright {
-        margin-top: 48px;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e3e3e3;
         text-align: center;
         font-size: 12px;
-        color: #6b7280;
+        color: #666666;
     }
     </style>
 </head>
 <body>
-    <footer class="footer-container">
+    <footer class="footer-container" id="footer">
         <div class="footer-content">
 
             <div>

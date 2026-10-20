@@ -1,13 +1,18 @@
 <style>
+    html {
+        scroll-behavior: smooth;
+    }
+
     body {
-        background-color: #f8fafc;
+        background-color: #ffffff;
+        color: #1a1a1a;
+        font-family: 'Georgia', serif, sans-serif;
     }
     .container {
+        width: 100%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 10px 16px;
-        padding-left: 60px;
-        padding-right: 60px;
+        padding: 44px 6vw;
     }
     .uni-grid {
         display: grid;
@@ -16,13 +21,13 @@
     }
     .uni-card {
         background: #ffffff;
-        border-radius: 20px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        border: 1px solid #f1f5f9;
+        border: 1px solid #e3e3e3;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .uni-card:hover {
@@ -46,13 +51,13 @@
     .uni-name {
         font-size: 20px;
         font-weight: bold;
-        color: #111827;
+        color: #1a1a1a;
         margin: 0;
         line-height: 1.2;
     }
     .badge {
-        background-color: #e5e7eb;
-        color: #4b5563;
+        background-color: #c9d0d9;
+        color: #1a1a1a;
         font-family: sans-serif;
         font-size: 11px;
         font-weight: bold;
@@ -60,7 +65,7 @@
         border-radius: 4px;
     }
     .info-box {
-        background-color: #f3f4f6;
+        background-color: #fcebd8;
         border-radius: 12px;
         padding: 12px;
         display: flex;
@@ -73,19 +78,19 @@
         margin: 0;
     }
     .ukt-price {
-        color: #f97316;
+        color: #ee7f32;
         font-weight: bold;
     }
     .card-desc {
-        font-size: 12px;
-        color: #6b7280;
+        font-size: 14px;
+        color: #666;
         line-height: 1.5;
         margin-bottom: 2px;
     }
     .btn-detail {
         display: block;
         width: 100%;
-        background-color: #f97316;
+        background-color: #ee7f3e;
         color: #ffffff;
         text-align: center;
         padding: 10px 0;
@@ -96,7 +101,7 @@
         box-sizing: border-box;
     }
     .btn-detail:hover {
-        background-color: #ea580c;
+        background-color: #d96b32;
     }
     .jelajahi-section {
         margin-top: 70px;
@@ -105,7 +110,7 @@
     }
 
     .jelajahi-section h2 {
-        font-size: 55px;
+        font-size: 40px;
         font-family: Georgia, serif;
         font-weight: 700;
         margin: 0 0 20px;
@@ -113,13 +118,17 @@
     }
 
     .jelajahi-section h2 span {
-        color: #ff6b1a;
+        color: #EE7F3E;
     }
     #map {
         width: 100%;
-        height: 550px;
+        height: 500px;
         border-radius: 20px;
         overflow: hidden;
+    }
+
+    #jelajahi-ptn {
+        scroll-margin-top: 20px;
     }
     </style>
     <div class="container">
@@ -360,7 +369,7 @@
         </div>
 
             <div class="jelajahi-section">
-                <h2>Jelajahi <span>PTN</span> di Indonesia</h2>
+                <h2 id="jelajahi-ptn">Jelajahi <span>PTN</span> di Indonesia</h2>
 
                 <div id="map"></div>
             </div>

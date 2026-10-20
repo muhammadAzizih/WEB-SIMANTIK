@@ -1,10 +1,13 @@
 @include('navbar')
+@include('chatbot')
 
 <link href="https://fonts.googleapis.com/css2?family=Alike&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
 <header class="univ-header">
-    <div class="univ-logo">USU</div>
+    <div class="univ-logo">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWlQmkGCv5tXyoGZldrWLLL98jjMZj6hD6fY6hMFiAoXpEVWOxeEHXyCgQ_UpSNvZwAzSsSIqkTYsqYaApXI1XKgaSt95VG0XTSJk36NWZeBWZby33kNInbdDkWOFujNFJqYuIZLxGue-5ZnYxL9prINUdw09Ik_0H_qMPG7swTh2PSD92Zf7D63skKA/s1560/Logo%20Universitas%20Sumatera%20Utara%20(USU).png" alt="Logo USU">
+    </div>
     <div class="univ-info">
         <h1>Universitas Sumatera Utara</h1>
         <div class="univ-location">
@@ -24,10 +27,6 @@
 
     <div class="univ-actions">
         <a href="https://www.usu.ac.id" target="_blank" rel="noopener" class="btn-outline btn-website">Website Resmi</a>
-        <button type="button" class="btn-outline btn-fav" aria-label="Simpan ke favorit">
-            <svg viewBox="0 0 28 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">                    <path d="M14 23.2C6 17 1.5 12.7 1.5 8c0-3.4 2.6-6 5.9-6c2.6 0 5 1.5 6.6 3.8C15.600 3.500 18 2 20.600 2c3.300 0 5.900 2.600 5.900 6c0 4.700-4.500 9-12.500 15.200z" fill="none" stroke="#AEB6BF" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
-        </button>
     </div>
 </header>
 
@@ -35,7 +34,7 @@
     <a href="#profil">Profil</a>
     <a href="#fakultas">Fakultas &amp; Program Studi</a>
     <a href="#lokasi">Lokasi Kampus</a>
-    <a href="#biaya">Biaya Kuliah</a>
+    <a href="#biaya">Biaya UKT</a>
 </nav>
 
 <section id="profil">
@@ -102,7 +101,7 @@
 </section>
 
 <section id="lokasi">
-  <h2 style="text-align:center">Lokasi Kampus</h2>
+  <h2>Lokasi Kampus</h2>
   <div class="lokasi-list">
     <div class="lokasi-card">
         <h3>📍 USU Kampus 1</h3>
@@ -123,7 +122,7 @@
 </section>
 
 <section id="biaya">
-    <h2 style="text-align:center">Biaya UKT</h2>
+    <h2>Biaya UKT</h2>
     <input class="radio-hidden" type="radio" name="jenjang" id="j-d3">
     <input class="radio-hidden" type="radio" name="jenjang" id="j-d4">
     <input class="radio-hidden" type="radio" name="jenjang" id="j-s1" checked>

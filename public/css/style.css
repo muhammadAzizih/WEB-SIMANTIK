@@ -1,86 +1,386 @@
-:root{--y:#F4BF6A;--o:#EE7F3E;--g:#C9D0D9;--c:#FCEBD8;--card:#ECEEF2;--line:#e3e3e3;--tx:#1a1a1a}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:70px}
-body{margin:0;color:var(--tx);background:#fff;font-family:'Alike',Georgia,serif;line-height:1.6}
-a{color:inherit}
-section,.container{padding:44px 6vw}
-h1{margin:0;font-size:clamp(26px,4vw,38px)}
-h2{font-size:30px;margin:0 0 18px}
+:root {
+    --y: #ffbf5f;
+    --o: #ee7f3e;
+    --g: #c9d0d9;
+    --c: #fcebd8;
+    --card: #eceef2;
+    --line: #e3e3e3;
+    --tx: #1a1a1a;
+}
 
-/* header institusi */
-.univ-header{display:flex;flex-wrap:wrap;align-items:center;gap:26px;padding:28px 6vw 20px}
-.univ-logo{width:110px;height:110px;border-radius:50%;border:3px solid #2f6b2f;display:grid;place-items:center;font-weight:bold;background:radial-gradient(circle,#f1c84b 30%,#2f6b2f 31% 62%,#e9e9e9 63%)}
-.univ-chips{display:flex;gap:10px;margin-top:8px}
-.univ-chip{background:var(--g);padding:3px 16px;border-radius:12px;font-size:15px}
-.univ-info{flex:1;min-width:240px}
-.univ-location{display:flex;align-items:center;gap:8px}
-.univ-location svg{width:14px;height:20px;flex:none}
-.univ-website{display:none}
-.univ-actions{margin-left:auto;display:flex;align-items:center;gap:12px}
-.btn-outline{display:inline-flex;align-items:center;justify-content:center;border:3px solid var(--g);background:none;color:inherit;font:inherit;padding:10px 22px;border-radius:10px;text-decoration:none;cursor:pointer;transition:background .15s}
-.btn-outline:hover{background:var(--c)}
-.btn-fav{padding:10px 16px}
-.btn-fav svg{width:28px;height:25px}
-.btn-fav:hover svg path{fill:var(--o);stroke:var(--o)}
+* {
+    box-sizing: border-box;
+}
 
-/* tab sticky */
-.tabs{position:sticky;top:0;z-index:10;display:flex;gap:26px;padding:6px 6vw 0;background:#fff;border-top:2px solid var(--line);border-bottom:2px solid var(--line);overflow-x:auto}
-.tabs a{padding:8px 20px 10px;font-size:22px;font-weight:bold;text-decoration:none;white-space:nowrap;border-bottom:4px solid transparent;border-radius:20px 20px 0 0}
-.tabs a:hover{background:var(--c);border-bottom-color:var(--y)}
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 70px;
+}
 
-/* profil */
-.content{font-size:18px;max-width:1000px}
-.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:1100px;margin-top:22px}
-.meta div{background:var(--c);border-radius:14px;padding:12px 16px}
-.meta small{display:block;font-size:13px;opacity:.7}
+body {
+    margin: 0;
+    color: var(--tx);
+    background: #fff;
+    font-family: 'Georgia', serif, sans-serif;
+    line-height: 1.6;
+}
 
-/* tombol pill + baris daftar */
-.pill{display:inline-block;margin:0 10px 14px 0;padding:12px 34px;border-radius:16px;background:var(--g);font-size:20px;font-weight:bold;cursor:pointer}
-.row{display:flex;max-width:1100px;margin-bottom:14px;border-radius:16px;overflow:hidden;background:var(--g);text-decoration:none;transition:transform .15s,box-shadow .15s}
-.row:nth-child(odd){background:var(--y)}
-.row:hover{transform:translateX(4px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
-.row .row-title,.row .t{flex:1;padding:18px 24px;font-size:21px}
-.row .row-title small,.row .t small{display:block;font-size:14px;opacity:.7}
-.row .row-arrow{width:110px;display:grid;place-items:center;background:var(--o);color:#fde3cf;font-size:34px}
+a {
+    color: inherit;
+}
 
-/* toggle tanpa JS (radio) */
-.radio-hidden{position:absolute;opacity:0;pointer-events:none}
-.listProdi{display:none}
-#tampil-prodi:checked ~ .listFakultas{display:none}
-#tampil-prodi:checked ~ .listProdi{display:block}
-#tampil-fakultas:checked ~ .pills label[for=tampil-fakultas],#tampil-prodi:checked ~ .pills label[for=tampil-prodi]{background:var(--y)}
+section, .container {
+    padding: 44px 6vw;
+}
 
-/* lokasi */
-.lokasi-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;max-width:1100px;margin:auto}
-.lokasi-card{background:var(--card);border-radius:22px;padding:24px;text-align:center}
-.lokasi-card h3{margin:0 0 16px;padding:14px;border-radius:16px;background:var(--g);font-size:21px}
-.lokasi-card a{display:inline-block;margin-top:10px;padding:10px 34px;border-radius:14px;background:var(--o);color:#fff;font-weight:bold;text-decoration:none}
+h1 {
+    margin: 0;
+    font-size: clamp(26px, 4vw, 38px);
+}
 
-/* tabel UKT */
-.tabel-wrapper{max-width:1200px;overflow-x:auto;padding:14px;border-radius:22px;background:var(--c)}
-table{width:100%;min-width:760px;border-collapse:collapse;color:var(--o)}
-th,td{padding:12px 14px;border-bottom:2px solid rgba(238,127,62,.35);text-align:right}
-th:first-child,td:first-child{text-align:left}
-th+th,td+td{border-left:2px solid rgba(238,127,62,.35)}
-.kosong{text-align:center!important;opacity:.7}
-.note{font-size:14px;opacity:.7}
-.tab-jenjang{text-align:center}
-.tab-jenjang .pill{margin:0 6px 14px}
-.panel{display:none}
-#j-d3:checked ~ .panel-d3,#j-d4:checked ~ .panel-d4,#j-s1:checked ~ .panel-s1,#j-s2:checked ~ .panel-s2,#j-s3:checked ~ .panel-s3{display:block}
-#j-d3:checked ~ .tab-jenjang label[for=j-d3],#j-d4:checked ~ .tab-jenjang label[for=j-d4],#j-s1:checked ~ .tab-jenjang label[for=j-s1],#j-s2:checked ~ .tab-jenjang label[for=j-s2],#j-s3:checked ~ .tab-jenjang label[for=j-s3]{background:var(--y)}
+h2 {
+    margin: 0 0 18px;
+    font-size: 22px;
+}
 
-/* halaman detail */
-.back{display:inline-block;margin-bottom:8px;text-decoration:none;font-size:18px}
-.subjudul{margin:0 0 18px;opacity:.75}
-.box{max-width:1100px;margin-bottom:18px;padding:22px 28px;border:2px solid var(--line);border-radius:28px}
-.box h4{margin:0 0 6px;font-size:19px}
-details{max-width:1100px;margin-bottom:14px}
-summary{display:flex;list-style:none;cursor:pointer;border-radius:16px;overflow:hidden;background:var(--y)}
-summary::-webkit-details-marker{display:none}
-summary span{flex:1;padding:18px 24px;font-size:21px}
-summary::after{content:"\2228";width:110px;display:grid;place-items:center;background:var(--o);color:#fde3cf;font-size:30px;transition:transform .2s}
-details[open] summary{border-radius:16px 16px 0 0}
-details[open] summary::after{transform:rotate(180deg)}
-.isi-dropdown{padding:18px 26px;border-radius:0 0 16px 16px;background:var(--card)}
-.copyright{padding:26px;text-align:center;background:var(--y)}
+.univ-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 26px;
+    padding: 28px 6vw 20px;
+}
+
+.univ-logo {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.univ-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+}
+
+.univ-chips {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.univ-info {
+    flex: 1;
+    min-width: 240px;
+}
+
+.univ-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.univ-location svg {
+    width: 14px;
+    height: 20px;
+    flex: none;
+}
+
+.univ-website {
+    display: none;
+}
+
+.univ-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 22px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-outline:hover {
+    background: #ffbf5f;
+}
+
+.tabs {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 26px;
+    padding: 6px 6vw 0;
+    border-top: 2px solid var(--line);
+    border-bottom: 2px solid var(--line);
+    background: #fff;
+    overflow-x: auto;
+}
+
+.tabs a {
+    padding: 8px 20px 0;
+    border-bottom: 4px solid transparent;
+    margin-bottom: -2px;
+    border-radius: 20px 20px 0 0;
+    font-size: 22px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tabs a:hover {
+    border-bottom-color: var(--y);
+    background: var(--c);
+}
+
+.content {
+    max-width: 1000px;
+    font-size: 18px;
+}
+
+.meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0px, 1fr));
+    gap: 12px;
+    width: 100%;
+    max-width: 1100px;
+    margin-top: 22px auto 0;
+}
+
+.meta div {
+    border-radius: 14px;
+    padding: 12px 16px;
+    background: var(--c);
+    text-align: center;
+}
+
+.meta small {
+    display: block;
+    font-size: 13px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.pill {
+    display: inline-block;
+    margin: 0 10px 14px 0;
+    border-radius: 16px;
+    padding: 12px 34px;
+    background: var(--g);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.row {
+    display: flex;
+    max-width: 1100px;
+    margin-bottom: 14px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--g);
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.row:nth-child(odd) {
+    background: var(--y);
+}
+
+.row:hover {
+    transform: translateX(4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.row .row-title {
+    flex: 1;
+    padding: 18px 24px;
+    font-size: 21px;
+} 
+
+.row .row-title small {
+    display: block;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.row .row-arrow {
+    display: grid;
+    place-items: center;
+    width: 110px;
+    background: var(--o);
+    color: #fde3cf;
+    font-size: 34px;
+}
+
+.radio-hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.listProdi {
+    display: none;
+}
+
+#tampil-prodi:checked ~ .listFakultas {
+    display: none;
+}
+
+#tampil-prodi:checked ~ .listProdi {
+    display: block;
+}
+
+#tampil-fakultas:checked ~ .pills label[for="tampil-fakultas"],
+#tampil-prodi:checked ~ .pills label[for="tampil-prodi"] {
+    background: var(--y);
+}
+
+.lokasi-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.lokasi-card {
+    border-radius: 22px;
+    padding: 24px;
+    background: var(--card);
+    text-align: center;
+}
+
+.lokasi-card h3 {
+    margin: 0 0 16px;
+    border-radius: 16px;
+    padding: 14px;
+    background: var(--g);
+    font-size: 21px;
+}
+
+.lokasi-card a {
+    display: inline-block;
+    margin-top: 10px;
+    border-radius: 14px;
+    padding: 10px 34px;
+    background: var(--o);
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.tabel-wrapper {
+    max-width: 1200px;
+    border-radius: 22px;
+    padding: 14px;
+    background: var(--c);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    color: var(--o);
+}
+
+th, td {
+    border-bottom: 2px solid rgba(238, 127, 62, 0.35);
+    padding: 12px 14px;
+    text-align: right;
+}
+
+th:first-child,td:first-child {
+    text-align: left;
+}
+
+th + th, td + td {
+    border-left: 2px solid rgba(238, 127, 62, 0.35);
+}
+
+.kosong {
+    text-align: center !important;
+    opacity: 0.7;
+}
+
+.note {
+    font-size: 14px;
+    opacity: 0.7;
+}
+    
+.tab-jenjang {
+    text-align: center;
+}
+
+.tab-jenjang .pill {
+    margin: 0 6px 14px;
+}
+
+.panel {
+    display: none;
+}
+
+#j-d3:checked ~ .panel-d3,
+#j-d4:checked ~ .panel-d4,
+#j-s1:checked ~ .panel-s1,
+#j-s2:checked ~ .panel-s2,
+#j-s3:checked ~ .panel-s3 {
+    display: block;
+}
+
+#j-d3:checked ~ .tab-jenjang label[for="j-d3"],
+#j-d4:checked ~ .tab-jenjang label[for="j-d4"],
+#j-s1:checked ~ .tab-jenjang label[for="j-s1"],
+#j-s2:checked ~ .tab-jenjang label[for="j-s2"],
+#j-s3:checked ~ .tab-jenjang label[for="j-s3"] {
+    background: var(--y);
+}
+
+.back {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 18px;
+    text-decoration: none;
+}
+
+.subjudul {
+    margin: 0 0 18px;
+    opacity: 0.75;
+}
+
+.box {
+    max-width: 1100px;
+    margin-bottom: 18px;
+    border: 2px solid var(--line);
+    border-radius: 28px;
+    padding: 22px 28px;
+}
+
+.box h4 {
+    margin: 0 0 6px;
+    font-size: 19px;
+}
+
+.copyright {
+    padding: 26px;
+    background: var(--y);
+    text-align: center;
+}
+    

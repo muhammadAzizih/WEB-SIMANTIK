@@ -142,11 +142,11 @@
            background: transparent;
            border: 1px solid #ffbf5f;
            border-radius: 20px;
-           padding: 8px 12px;
+           padding: 6px 10px;
            font-size: 16px;
            color: #1a1a1a;
            cursor: pointer;
-           width: 170px;
+           width: 160px;
            gap: 10px;
         }
 
@@ -190,8 +190,20 @@
         }
 
         .btn-filter {
+            background-color: #ffbf5f;
+            color: #1a1a1a;
+            border: 2px solid #ffbf5f;
+            padding: 8px 24px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-filter:hover {
             background-color: #ee7f3e;
-            color: #ffffff;
+            color: #ffffffff;
             border: 2px solid #ee7f3e;
             padding: 8px 24px;
             border-radius: 25px;
@@ -199,6 +211,24 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s ease;
+        }
+
+        .dropdown-menu::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: #fcebd8;
+            border-radius: 10px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: #ffbf5f;
+            border-radius: 10px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background: #ee7f3e;
         }
 
         .btn-filter:hover {
@@ -327,15 +357,30 @@
     </div>
 
     <div class="category-group">
-        <button class="cat-btn">🏛️ Semua PTN</button>
-        <button class="cat-btn">🏛️ Universitas</button>
-        <button class="cat-btn">⚙️ Politeknik</button>
-        <button class="cat-btn">🏢 Institut</button>
+        <button class="cat-btn">🏛️ Semua Kampus</button>
+        <button class="cat-btn">🏛️ PTN Umum</button>
+        <button class="cat-btn">⚙️ PTKN</button>
+        <!-- <button class="cat-btn">🏢 Institut</button> -->
     </div>
 
     <div class="filter-wrapper">
         <div class="dropdown-group">
             
+        <div class="dropdown-item">
+                <button class="dropdown-btn">
+                    <span>Jenis Kampus</span>
+                    <span class="arrow-box">∨</span>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="#">Semua Jenis</a>
+                    <a href="#">Universitas</a>
+                    <a href="#">Institut</a>
+                    <a href="#">Politekni</a>
+                    <a href="#">Sekolah Tinggi</a>
+                    <a href="#">Akademik</a>
+                </div>
+            </div>
+
             <div class="dropdown-item">
                 <button class="dropdown-btn">
                     <span>Provinsi</span>

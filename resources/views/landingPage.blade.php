@@ -31,6 +31,60 @@
             background-color: #ffffff;
         }
 
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin: 30px auto;
+        }
+
+        .search-wrapper .search-container {
+            margin: 0;
+            max-width: 100%;
+        }
+
+        .search-suggestions {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #f1d8b5;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .search-suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            display: block;
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            background: #fff;
+            color: #1a1a1a;
+            text-align: left;
+            font-family: Georgia, serif;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background: #fff3d6;
+        }
+
+        .suggestion-item small {
+            display: block;
+            margin-top: 4px;
+            color: #888;
+            font-size: 12px;
+        }
+
         .search-icon-box {
             display: flex;
             align-items: center;
@@ -148,6 +202,16 @@
            cursor: pointer;
            width: 160px;
            gap: 10px;
+        }
+
+        .dropdown-btn:focus,
+        .dropdown-btn:active {
+            font-family: 'Georgia', serif, sans-serif;
+            font-size: 16px;
+            font-weight: normal;
+            color: #ee7f3e;
+            padding: 6px 10px;
+            width: 160px;
         }
 
         .dropdown-btn .arrow-box {
@@ -341,21 +405,26 @@
 
     @include('navbar')
 
-    <div class="search-container">
-        <div class="search-icon-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+    <div class="search-wrapper">
+        <div class="search-container">
+            <div class="search-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+
+            <input type="text" id="search-input"
+                placeholder="Cari nama kampus, jurusan, lokasi dan lainnya..."
+                autocomplete="off">
+
+            <button class="mic-btn">
+                <!-- SVG microphone tetap gunakan yang sebelumnya -->
+            </button>
         </div>
-        <input type="text" id="search-input" placeholder="Cari nama kampus, jurusan, lokasi dan lainnya...">
-        <button class="mic-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="22"></line>
-            </svg>
-        </button>
+
+        <div id="search-suggestions" class="search-suggestions"></div>
     </div>
 
     <div class="hero-section">
@@ -424,6 +493,102 @@
     @include('footer')
 
     <script src="{{ asset('js/kampus-filter.js') }}"></script>
+
+    <!-- js unutk kalau user nyari, itu ada muncul dibawahnya itu -->
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('search-suggestions');
+
+        let searchTimer;
+        let controller;
+        let selectedSuggestion = false;
+
+        async function loadSuggestions(keyword = '') {
+            if (controller) controller.abort();
+
+            controller = new AbortController();
+
+            try {
+                const response = await fetch(
+                    `/api/kampus/suggestions?q=${encodeURIComponent(keyword)}`,
+                    { signal: controller.signal }
+                );
+
+                if (!response.ok) throw new Error('Gagal mengambil rekomendasi');
+
+                const data = await response.json();
+
+                suggestionsBox.innerHTML = '';
+
+                if (data.length === 0) {
+                    suggestionsBox.classList.remove('show');
+                    return;
+                }
+
+                data.forEach(kampus => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'suggestion-item';
+
+                    const nama = document.createElement('strong');
+                    nama.textContent = kampus.nama;
+
+                    const lokasi = document.createElement('small');
+                    lokasi.textContent = `${kampus.kota}, ${kampus.provinsi}`;
+
+                    item.append(nama, lokasi);
+
+                    item.addEventListener('click', () => {
+                        window.location.href = `/kampus?id=${encodeURIComponent(kampus.id)}`;
+                    });
+
+                    suggestionsBox.appendChild(item);
+                });
+
+                suggestionsBox.classList.add('show');
+
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error(error);
+                }
+            }
+        }
+
+        searchInput.addEventListener('focus', () => {
+            loadSuggestions(searchInput.value.trim());
+        });
+
+        searchInput.addEventListener('input', function () {
+            if (selectedSuggestion) {
+                selectedSuggestion = false;
+                return;
+            }
+
+            clearTimeout(searchTimer);
+
+            const keyword = this.value.trim();
+
+            if (keyword.length === 0) {
+                loadSuggestions('');
+                return;
+            }
+
+            if (keyword.length < 2) {
+                suggestionsBox.classList.remove('show');
+                return;
+            }
+
+            searchTimer = setTimeout(() => {
+                loadSuggestions(keyword);
+            }, 200);
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.search-wrapper')) {
+                suggestionsBox.classList.remove('show');
+            }
+        });
+    </script>
 
     <!-- js untuk map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

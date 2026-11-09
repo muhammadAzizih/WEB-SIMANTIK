@@ -2,27 +2,17 @@
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
 <div class="container">
-    <a class="back" href="{{ route('kampus') }}#fakultas">
+    <a class="back" href="{{ route('kampus', ['id' => $kode]) }}#fakultas">
         ← Kembali ke Fakultas
     </a>
-    <h1>Fakultas Ilmu Komputer dan Teknologi Informasi</h1>
-    <p class="subjudul">Universitas Sumatera Utara</p>
-    
+    <h1>{{ $nama }}</h1>
+    <p class="subjudul">{{ $k['nama'] }}</p>
+
     <h2>Program Studi</h2>
-    <a class="row" href="{{ route('prodi') }}">
-        <div class="row-title">S1 Teknologi Informasi</div>
-        <div class="row-arrow">&gt;</div>
-    </a>
-    <a class="row" href="#">
-        <div class="row-title">S1 Ilmu Komputer</div>
-        <div class="row-arrow">&gt;</div>
-    </a>
-    <a class="row" href="#">
-        <div class="row-title">S2 Kecerdasan Buatan</div>
-        <div class="row-arrow">&gt;</div>
-    </a>
-    <a class="row" href="#">
-        <div class="row-title">S3 Teknik Informatika</div>
-        <div class="row-arrow">&gt;</div>
-    </a>
+    @foreach($prodi as $p)
+        <a class="row" href="{{ route('prodi', ['id' => $kode, 'kode' => $p['kode']]) }}">
+            <div class="row-title">{{ $p['jenjang'] }} {{ $p['nama'] }}</div>
+            <div class="row-arrow">&gt;</div>
+        </a>
+    @endforeach
 </div>

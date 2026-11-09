@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+     'fuseki' => [
+        'endpoint' => env('FUSEKI_ENDPOINT', 'http://localhost:3030/cariKampus/sparql'),
+    ],
+
 ];

@@ -326,17 +326,31 @@ th + th, td + td {
 }
     
 .tab-jenjang {
-    text-align: center;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
 }
 
 .tab-jenjang .pill {
-    margin: 0 6px 14px;
+    flex: 0 0 auto;
+    margin: 0 0 14px;
+    padding: 12px 22px;
+    font-size: 18px;
+    white-space: nowrap;
 }
+
+/* tengahkan saat muat, tapi tetap bisa digeser di layar sempit */
+.tab-jenjang .pill:first-child { margin-left: auto; }
+.tab-jenjang .pill:last-child  { margin-right: auto; }
 
 .panel {
     display: none;
 }
 
+#j-d1:checked ~ .panel-d1,
+#j-d2:checked ~ .panel-d2,
 #j-d3:checked ~ .panel-d3,
 #j-d4:checked ~ .panel-d4,
 #j-s1:checked ~ .panel-s1,
@@ -345,6 +359,8 @@ th + th, td + td {
     display: block;
 }
 
+#j-d1:checked ~ .tab-jenjang label[for="j-d1"],
+#j-d2:checked ~ .tab-jenjang label[for="j-d2"],
 #j-d3:checked ~ .tab-jenjang label[for="j-d3"],
 #j-d4:checked ~ .tab-jenjang label[for="j-d4"],
 #j-s1:checked ~ .tab-jenjang label[for="j-s1"],

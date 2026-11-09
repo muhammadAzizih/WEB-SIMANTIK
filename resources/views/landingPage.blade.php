@@ -258,6 +258,16 @@
             overflow: hidden;
         }
 
+        .cat-btn.active {
+            background-color: #ffbf5f;
+            color: #ffffff;
+        }
+
+        .dropdown-menu .dd-search {
+            position: sticky;
+            top: 0;
+        }
+
         @media (max-width: 768px) {
             .search-container {
                 width: 90%;
@@ -338,7 +348,7 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
         </div>
-        <input type="text" placeholder="Cari nama kampus, jurusan, lokasi dan lainnya...">
+        <input type="text" id="search-input" placeholder="Cari nama kampus, jurusan, lokasi dan lainnya...">
         <button class="mic-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
@@ -357,134 +367,63 @@
     </div>
 
     <div class="category-group">
-        <button class="cat-btn">🏛️ Semua Kampus</button>
-        <button class="cat-btn">🏛️ PTN Umum</button>
-        <button class="cat-btn">⚙️ PTKN</button>
+        <button class="cat-btn active" data-kategori="">🏛️ Semua Kampus</button>
+        <button class="cat-btn" data-kategori="PTN_UMUM">🏛️ PTN Umum</button>
+        <button class="cat-btn" data-kategori="PTKN">⚙️ PTKN</button>
         <!-- <button class="cat-btn">🏢 Institut</button> -->
     </div>
 
-    <div class="filter-wrapper">
-        <div class="dropdown-group">
-            
-        <div class="dropdown-item">
-                <button class="dropdown-btn">
-                    <span>Jenis Kampus</span>
+    <div class="filter-wrapper">        <div class="dropdown-group">
+            <div class="dropdown-item" data-filter="jenis">
+                <button type="button" class="dropdown-btn">
+                    <span class="dd-label" data-default="Jenis Kampus">Jenis Kampus</span>
                     <span class="arrow-box">∨</span>
                 </button>
-                <div class="dropdown-menu">
-                    <a href="#">Semua Jenis</a>
-                    <a href="#">Universitas</a>
-                    <a href="#">Institut</a>
-                    <a href="#">Politekni</a>
-                    <a href="#">Sekolah Tinggi</a>
-                    <a href="#">Akademik</a>
-                </div>
+                <div class="dropdown-menu"><div class="dd-options"></div></div>
             </div>
 
-            <div class="dropdown-item">
-                <button class="dropdown-btn">
-                    <span>Provinsi</span>
+            <div class="dropdown-item" data-filter="provinsi">
+                <button type="button" class="dropdown-btn">
+                    <span class="dd-label" data-default="Provinsi">Provinsi</span>
                     <span class="arrow-box">∨</span>
                 </button>
-                <div class="dropdown-menu">
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                    <a href="#">Sumatera Utara</a>
-                </div>
+                <div class="dropdown-menu"><div class="dd-options"></div></div>
             </div>
 
-            <div class="dropdown-item">
-                <button class="dropdown-btn">
-                    <span>Kota</span>
+            <div class="dropdown-item" data-filter="kota">
+                <button type="button" class="dropdown-btn">
+                    <span class="dd-label" data-default="Kota">Kota</span>
                     <span class="arrow-box">∨</span>
                 </button>
-                <div class="dropdown-menu">
-                    <a href="#">Medan</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                    <a href="#">Padang</a>
-                </div>
+                <div class="dropdown-menu"><div class="dd-options"></div></div>
             </div>
 
-            <div class="dropdown-item">
-                <button class="dropdown-btn">
-                    <span>Jenjang</span>
+            <div class="dropdown-item" data-filter="jenjang">
+                <button type="button" class="dropdown-btn">
+                    <span class="dd-label" data-default="Jenjang">Jenjang</span>
                     <span class="arrow-box">∨</span>
                 </button>
-                <div class="dropdown-menu">
-                    <a href="#">S1</a>
-                    <a href="#">D3 / D4</a>
-                    <a href="#">D3 / D4</a>
-                    <a href="#">D3 / D4</a>
-                    <a href="#">D3 / D4</a>
-                    <a href="#">D3 / D4</a>
-                </div>
+                <div class="dropdown-menu"><div class="dd-options"></div></div>
             </div>
 
-            <div class="dropdown-item">
-                <button class="dropdown-btn">
-                    <span>Prodi</span>
+            <div class="dropdown-item" data-filter="prodi">
+                <button type="button" class="dropdown-btn">
+                    <span class="dd-label" data-default="Prodi">Prodi</span>
                     <span class="arrow-box">∨</span>
                 </button>
-                <div class="dropdown-menu">
-                    <a href="#">Teknik Informatika</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                    <a href="#">Sistem Informasi</a>
-                </div>
+                <div class="dropdown-menu"><input type="text" class="dd-search" placeholder="Cari prodi..."><div class="dd-options"></div></div>
             </div>
-
         </div>
 
-        <button class="btn-filter">Filter</button>
-        <button class="btn-clear">Clear</button>
+        <button type="button" class="btn-filter" id="btn-filter">Filter</button>
+        <button type="button" class="btn-clear" id="btn-clear">Clear</button>
     </div>
 
     @include('chatbot')
     @include('content')
     @include('footer')
 
-    <script>
-        const dropdownButtons = document.querySelectorAll('.dropdown-btn');
-
-        dropdownButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const menu = this.nextElementSibling;
-
-                document.querySelectorAll('.dropdown-menu').forEach(item => {
-                    if (item !== menu) {
-                        item.style.display = 'none';
-                    }
-                });
-
-                menu.style.display =
-                    menu.style.display === 'block' ? 'none' : 'block';
-            });
-        });
-
-        document.addEventListener('click', function (event) {
-            if (!event.target.closest('.dropdown-item')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.style.display = 'none';
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/kampus-filter.js') }}"></script>
 
     <!-- js untuk map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

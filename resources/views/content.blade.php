@@ -130,245 +130,39 @@
     #jelajahi-ptn {
         scroll-margin-top: 20px;
     }
+    .dropdown-menu a.active { background:#fcebd8; font-weight:bold; }
+    .dropdown-menu { max-height: 260px; overflow-y: auto; }
+    .dropdown-menu input.dd-search { width:calc(100% - 16px); margin:8px; padding:6px 8px; border:1px solid #e3e3e3; border-radius:8px; box-sizing:border-box; }
+    .dropdown-btn.has-value span:first-child { color:#ee7f32; font-weight:bold; }
+    #uni-pagination { flex-wrap: wrap; align-items: center; }
+    #uni-pagination .pg-btn {
+        min-width: 44px; height: 44px; padding: 0 12px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: 1.5px solid #ffd9a8; background: #fffaf3; color: #1a1a1a;
+        border-radius: 12px; font-size: 16px; font-weight: bold;
+        cursor: pointer; transition: all .2s ease;
+    }
+    #uni-pagination .pg-btn:hover:not(:disabled):not(.active):not(.dots) {
+        background: #fcebd8; border-color: #ffbf5f; transform: translateY(-2px);
+    }
+    #uni-pagination .pg-btn.active {
+        background: #ee7f3e; border-color: #ee7f3e; color: #fff;
+        box-shadow: 0 4px 10px rgba(238,127,62,.35); cursor: default;
+    }
+    #uni-pagination .pg-btn.dots { border-color: transparent; background: transparent; cursor: default; }
+    #uni-pagination .pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+    @media (max-width: 480px) {
+        #uni-pagination .pg-btn { min-width: 38px; height: 38px; padding: 0 8px; font-size: 14px; }
+    }
     </style>
     <div class="container">
-        <div class="uni-grid">
-            <!-- Card 1 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
+        <div class="uni-grid" id="uni-grid"></div>
+        <p id="uni-empty" style="display:none;text-align:center;color:#666;font-family:sans-serif;margin-top:30px;">
+            Tidak ada kampus yang cocok dengan filter kamu.
+        </p>
+        <div id="uni-pagination" style="display:flex;justify-content:center;gap:8px;margin:28px 0 8px;"></div>
 
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-
-            <!-- Card 2 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
-
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-
-            <!-- Card 3 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
-
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-
-            <!-- Card 4 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
-
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-
-            <!-- Card 5 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
-
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-
-            <!-- Card 6 -->
-            <div class="uni-card">
-            <div>
-                <img 
-                src="https://th.bing.com/th/id/OIP.NQv0n-_b6jXLsqnGPDtWOwHaE9?r=0&o=7rm=3&rs=1&pid=ImgDetMain" 
-                alt="Universitas Padjadjaran" 
-                class="card-img"
-                />
-
-                <div class="card-body">
-                <div class="card-header">
-                    <h3 class="uni-name">Universitas<br>Padjadjaran</h3>
-                    <span class="badge">UNPAD</span>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-left">
-                    <p style="font-weight: bold;">12 Fakultas</p>
-                    <p style="color: #6b7280;">30 Prodi</p>
-                    </div>
-
-                    <div class="info-right" style="text-align: right;">
-                    <p style="color: #6b7280;">Rentang UKT</p>
-                    <p class="ukt-price">Rp. 500rb - 10Jt</p>
-                    </div>
-                </div>
-
-                <p class="card-desc">
-                    Universitas Padjadjaran adalah sebuah perguruan tinggi negeri di Kota Bandung dan Kabupaten ....
-                </p>
-                </div>
-            </div>
-
-            <div style="padding: 0 20px 20px;">
-                <a href="/kampus" class="btn-detail">Lihat Detail</a>
-            </div>
-            </div>
-
-        </div>
-
-            <div class="jelajahi-section">
+        <div class="jelajahi-section">
                 <h2 id="jelajahi-ptn">Jelajahi <span>PTN</span> di Indonesia</h2>
 
                 <div id="map"></div>

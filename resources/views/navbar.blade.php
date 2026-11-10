@@ -77,7 +77,7 @@
         font-size: 15px;
         font-weight: 500;
         font-family: 'Georgia', serif, sans-serif;
-        transition: color 0.2s ease, color 0.25s ease, transform 0.25s ease
+        transition: color 0.2s ease, color 0.25s ease, transform 0.25s ease;
         position: relative;
         top: 0;
         padding: 10px 14px;

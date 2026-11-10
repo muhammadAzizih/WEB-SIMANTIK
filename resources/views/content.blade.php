@@ -20,19 +20,20 @@
         gap: 15px;
     }
     .uni-card {
-        background: #ffffff;
+        background:  #FFF9EF;
+        border: 2px solid #E9B96E;
         border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 5px 0 #E9B96E, 0 6px 14px rgba(0, 0, 0, 0.12);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        border: 1px solid #e3e3e3;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .uni-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        border-color: #FFBF5F;
+        box-shadow: 0 5px 0 #EE7F3E, 0 8px 18px rgba(0, 0, 0, 0.16);
     }
     .card-img {
         width: 100%;
@@ -40,24 +41,30 @@
         object-fit: cover;
     }
     .card-body {
-        padding: 15px;
+        padding: 12px;
     }
     .card-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 16px;
+        height: 60px;
+        margin-bottom: 10px;
+        flex-shirk: 0;
     }
     .uni-name {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         color: #1a1a1a;
         margin: 0;
         line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .badge {
-        background-color: #c9d0d9;
-        color: #1a1a1a;
+        background-color: #F4D7A8;
+        color: #80501F;
         font-family: sans-serif;
         font-size: 11px;
         font-weight: bold;
@@ -65,7 +72,7 @@
         border-radius: 4px;
     }
     .info-box {
-        background-color: #fcebd8;
+        background-color:  #FFF0DC;
         border-radius: 12px;
         padding: 12px;
         display: flex;
@@ -82,10 +89,14 @@
         font-weight: bold;
     }
     .card-desc {
-        font-size: 14px;
+        font-size: 13px;
         color: #666;
-        line-height: 1.5;
-        margin-bottom: 2px;
+        line-height: 1.4;
+        margin-bottom: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .btn-detail {
         display: block;

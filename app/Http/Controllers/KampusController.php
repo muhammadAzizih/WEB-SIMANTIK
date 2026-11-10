@@ -122,10 +122,52 @@ SPARQL;
         ]);
     }
 
-    /**
-     * GET /api/filter-options
-     * Isi dropdown. `kota` otomatis menyesuaikan ?provinsi=
-     */
+    // fiz, aku (yoan) nambah ini untuk search ya
+    public function suggestions(Request $request): JsonResponse
+    {
+        $q = Str::lower(trim((string) $request->query('q', '')));
+
+        $filter = '';
+
+        if ($q !== '') {
+            $literal = F::lit($q);
+
+            $filter = "FILTER(
+                CONTAINS(LCASE(STR(?nama)), $literal) ||
+                CONTAINS(LCASE(STR(?singkatan)), $literal) ||
+                CONTAINS(LCASE(STR(?kota)), $literal)
+            )";
+        }
+
+        $query = <<<SPARQL
+        SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?provinsi
+        WHERE {
+            ?k a ck:Institusi ;
+            ck:kodePT ?kode ;
+            ck:namaInstitusi ?nama ;
+            ck:singkatan ?singkatan ;
+            ck:kota ?kota ;
+            ck:provinsi ?provinsi .
+
+            $filter
+        }
+        ORDER BY ?nama
+        LIMIT 5
+        SPARQL;
+
+        $rows = $this->fuseki->select($query);
+
+        return response()->json(array_map(fn ($r) => [
+            'id' => $r['kode'],
+            'nama' => $r['nama'],
+            'singkatan' => $r['singkatan'],
+            'kota' => $r['kota'],
+            'provinsi' => Str::of($r['provinsi'])
+                ->replaceFirst('Prov. ', '')
+                ->toString(),
+        ], $rows));
+    }
+
     public function options(Request $request): JsonResponse
     {
         $provinsi = $request->query('provinsi');
@@ -402,7 +444,7 @@ SPARQL));
 
         return [
             'id'         => $r['kode'],
-            'nama'       => $r['nama'],
+            'nama'       => Str::limit($r['nama'], 25, '...'),
             'singkatan'  => $r['singkatan'],
             'kategori'   => $r['kategori'],
             'jenis'      => $r['jenis'],
@@ -439,3 +481,4 @@ SPARQL));
         return (string) (int) $n;
     }
 }
+

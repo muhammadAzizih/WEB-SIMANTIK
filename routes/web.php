@@ -32,4 +32,5 @@ Route::prefix('api')->group(function () {
     Route::get('/kampus/peta', [KampusController::class, 'peta']);
     Route::get('/filter-options', [KampusController::class, 'options']);
     Route::get('/prodi', [KampusController::class, 'prodi']);
+    Route::get('/kampus/suggestions', [KampusController::class, 'suggestions']);
 });

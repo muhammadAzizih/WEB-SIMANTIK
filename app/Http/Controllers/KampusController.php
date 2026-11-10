@@ -352,30 +352,37 @@ SPARQL));
         abort_if(empty($rows), 404, 'Kampus tidak ditemukan');
         $r = $rows[0];
 
+        
+            $provinsi = Str::of($r['provinsi'])->replaceFirst('Prov. ', '')->toString();
+        $fallbackLogo = 'https://placehold.co/220x220/fcebd8/ee7f32?text=' . urlencode($r['singkatan'] ?? 'Logo');
+
         return [
             'nama'       => $r['nama'],
-            'singkatan'  => $r['singkatan'],
-            'kategori'   => $r['kategori'],
-            'label_kat'  => $r['kategori'] === 'PTN_UMUM' ? 'PTN' : 'PTKN',
-            'jenis'      => $r['jenis'],
-            'kota'       => $r['kota'],
-            'provinsi'   => Str::of($r['provinsi'])->replaceFirst('Prov. ', '')->toString(),
-            'kecamatan'  => $r['kecamatan'] ?? null,
-            'alamat'     => $r['alamat'] ?? null,
-            'kode_pos'   => $r['kodePos'] ?? null,
+            'singkatan'  => $r['singkatan'] ?? 'PTN',
+            'kategori'   => $r['kategori'] ?? 'PTN_UMUM',
+            'label_kat'  => ($r['kategori'] ?? '') === 'PTKN' ? 'PTKN' : 'PTN',
+            'jenis'      => $r['jenis'] ?? 'Universitas',
+            'kota'       => $r['kota'] ?? '-',
+            'provinsi'   => $provinsi ?: '-',
+            'kecamatan'  => $r['kecamatan'] ?? '-',
+            'alamat'     => $r['alamat'] ?? 'Alamat belum tercatat',
+            'kode_pos'   => $r['kodePos'] ?? '-',
             'lat'        => isset($r['lat']) ? (float) $r['lat'] : null,
             'lng'        => isset($r['lng']) ? (float) $r['lng'] : null,
-            'akreditasi' => $r['akreditasi'] ?? null,
-            'lembaga'    => $r['lembaga'] ?? null,
-            'masa'       => $r['masa'] ?? null,
-            'tahun'      => isset($r['berdiri']) ? substr($r['berdiri'], 0, 4) : null,
+            'akreditasi' => $r['akreditasi'] ?? 'Belum Terakreditasi',
+            'lembaga'    => $r['lembaga'] ?? 'BAN-PT',
+            'masa'       => $r['masa'] ?? 'Masih Berlaku',
+            'tahun'      => isset($r['berdiri']) ? substr($r['berdiri'], 0, 4) : '-',
             'website'    => $r['website'] ?? null,
-            'logo'       => $this->httpsUrl($r['logo'] ?? null),   // logo kampus (ck:logo)
-            'deskripsi'  => $r['deskripsi'] ?? null,
-            'rentang'    => $r['rentang'] ?? null,
-            'email'      => $r['email'] ?? null,
-            'telp'       => $r['telp'] ?? null,
+            'logo'       => !empty($r['logo']) ? $this->httpsUrl($r['logo']) : $fallbackLogo,
+            'deskripsi'  => !empty($r['deskripsi']) 
+                ? $r['deskripsi'] 
+                : sprintf('%s adalah perguruan tinggi negeri yang berlokasi di %s, %s.', $r['nama'], $r['kota'], $provinsi),
+            'rentang'    => $r['rentang'] ?? 'Menyesuaikan kebijakan PTN',
+            'email'      => $r['email'] ?? '-',
+            'telp'       => $r['telp'] ?? '-',
         ];
+  
     }
 
     /** Semua prodi AKTIF milik satu kampus, terurut fakultas > jenjang > nama. */
@@ -431,37 +438,45 @@ SPARQL));
 
         return Cache::remember($key, $ttl, $fn);
     }
-
+  //fallback untuk data kampus yang kosong
     private function toCard(array $r): array
     {
         $provinsi = Str::of($r['provinsi'])->replaceFirst('Prov. ', '')->toString();
 
-        $deskripsi = $r['deskripsi'] ?? sprintf('%s berlokasi di %s, %s.', $r['nama'], $r['kota'], $provinsi);
+        //  Fallback Deskripsi
+        $deskripsi = !empty($r['deskripsi']) 
+            ? $r['deskripsi'] 
+            : sprintf('%s adalah perguruan tinggi negeri terkemuka yang berlokasi di %s, %s.', $r['nama'], $r['kota'], $provinsi);
 
+        //  Fallback UKT
         $ukt = isset($r['biayaMin'], $r['biayaMax'])
             ? 'Rp. ' . $this->rupiahSingkat((float) $r['biayaMin']) . ' - ' . $this->rupiahSingkat((float) $r['biayaMax'])
-            : null;
+            : ($r['rentangUKT'] ?? 'Menyesuaikan UKT');
+
+        //. Fallback Gambar
+        $fallbackGambar = 'https://placehold.co/600x300/fcebd8/ee7f32?text=' . urlencode($r['singkatan'] ?? 'Kampus');
+        $gambar = !empty($r['gambar']) ? $this->httpsUrl($r['gambar']) : $fallbackGambar;
 
         return [
-            'id'         => $r['kode'],
-            'nama'       => Str::limit($r['nama'], 25, '...'),
-            'singkatan'  => $r['singkatan'],
-            'kategori'   => $r['kategori'],
-            'jenis'      => $r['jenis'],
-            'kota'       => $r['kota'],
-            'provinsi'   => $provinsi,
-            'akreditasi' => $r['akreditasi'] ?? null,
-            'website'    => $r['website'] ?? null,
-            'fakultas'   => (int) $r['jmlFakultas'],
-            'prodi'      => (int) $r['jmlProdi'],
-            'deskripsi'  => Str::limit($deskripsi, 110),   // dipotong untuk card
-            'deskripsi_lengkap' => $deskripsi,             // untuk halaman detail
-            'ukt'        => $ukt,                          // contoh: "Rp. 500rb - 10Jt"
-            'ukt_lengkap'=> $r['rentangUKT'] ?? null,      // contoh: "Rp 500.000 - Rp 10.000.000"
-            'gambar'     => $this->httpsUrl($r['gambar'] ?? null),   // foto kampus (ck:gambarKampus)
-            'url'        => url('/kampus?id=' . $r['kode']),
+            'id'                => $r['kode'],
+            'nama'              => $r['nama'],
+            'singkatan'         => $r['singkatan'] ?? 'PTN',
+            'kategori'          => $r['kategori'] ?? 'PTN_UMUM',
+            'jenis'             => $r['jenis'] ?? 'Universitas',
+            'kota'              => $r['kota'] ?? '-',
+            'provinsi'          => $provinsi ?: '-',
+            'akreditasi'        => $r['akreditasi'] ?? 'Belum Terakreditasi',
+            'website'           => $r['website'] ?? null,
+            'fakultas'          => (int) ($r['jmlFakultas'] ?? 0),
+            'prodi'             => (int) ($r['jmlProdi'] ?? 0),
+            'deskripsi'         => Str::limit($deskripsi, 110),
+            'deskripsi_lengkap' => $deskripsi,
+            'ukt'               => $ukt,
+            'ukt_lengkap'       => $r['rentangUKT'] ?? $ukt,
+            'gambar'            => $gambar,
+            'url'               => url('/kampus?id=' . $r['kode']),
         ];
-    }
+}
 
     /** http:// -> https:// supaya gambar tidak diblokir browser (mixed content). */
     private function httpsUrl(?string $url): ?string

@@ -625,7 +625,7 @@
                                     ${kampus.nama}
                                 </h4>
                                 <p style="margin: 0 0 10px; font-size: 12px; color: #666;">
-                                    📍 ${kampus.kota}, ${kampus.provinsi}
+                                     ${kampus.kota}, ${kampus.provinsi}
                                 </p>
                                 <a href="/kampus?id=${kampus.id}" style="display: inline-block; background: #ee7f3e; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold;">
                                     Lihat Kampus →

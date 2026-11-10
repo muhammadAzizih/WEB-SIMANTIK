@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page - PTN Impian</title>
+        <!-- Open Graph Protocol (OGP) - Syarat Web Semantik -->
+    <meta property="og:title" content="PTN Impian - Gerbang Menuju Kampus Impian">
+    <meta property="og:description" content="Temukan kampus negeri (PTN & PTKN) terbaik di Indonesia untuk kamu belajar, berkembang, dan menggapai mimpi.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:image" content="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWlQmkGCv5tXyoGZldrWLLL98jjMZj6hD6fY6hMFiAoXpEVWOxeEHXyCgQ_UpSNvZwAzSsSIqkTYsqYaApXI1XKgaSt95VG0XTSJk36NWZeBWZby33kNInbdDkWOFujNFJqYuIZLxGue-5ZnYxL9prINUdw09Ik_0H_qMPG7swTh2PSD92Zf7D63skKA/s1560/Logo%20Universitas%20Sumatera%20Utara%20(USU).png">
+    <meta property="og:site_name" content="PTN Impian">
+    <meta property="og:locale" content="id_ID">
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\FusekiService as F;
+use App\Services\DbpediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -10,7 +11,10 @@ use Illuminate\Support\Str;
 
 class KampusController extends Controller
 {
-    public function __construct(private F $fuseki) {}
+    public function __construct(
+        private F $fuseki,
+        private DbpediaService $dbpedia
+    ) {}
 
     /**
      * GET /api/kampus
@@ -266,6 +270,7 @@ SPARQL));
             'prodi'    => $prodi,
             'ukt'      => $this->uktKampus($kode),
             'lokasi'   => $this->lokasiTambahan($kode, $k),
+            'dbpedia'  => $this->dbpedia->getInfo($k['nama'] ?? ''),
         ]);
     }
 
@@ -453,7 +458,7 @@ SPARQL));
             ? 'Rp. ' . $this->rupiahSingkat((float) $r['biayaMin']) . ' - ' . $this->rupiahSingkat((float) $r['biayaMax'])
             : ($r['rentangUKT'] ?? 'Menyesuaikan UKT');
 
-        //. Fallback Gambar
+        //. Fallback Gambar zi
         $fallbackGambar = 'https://placehold.co/600x300/fcebd8/ee7f32?text=' . urlencode($r['singkatan'] ?? 'Kampus');
         $gambar = !empty($r['gambar']) ? $this->httpsUrl($r['gambar']) : $fallbackGambar;
 

@@ -12,9 +12,8 @@ PREFIX ck:   <https://carikampus.id/ontology/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SPARQL;
 
-    /**
-     * Jalankan query SELECT ke Fuseki, kembalikan array of row (key = nama variabel, value = string).
-     */
+    
+     //Jalankan query SELECT ke Fuseki
     public function select(string $query): array
     {
         if (!config('services.fuseki.endpoint')) {

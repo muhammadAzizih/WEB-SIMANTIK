@@ -3,7 +3,7 @@
 
 <div class="container">
     <a class="back" href="{{ route('kampus', ['id' => $kode]) }}#fakultas">
-        ← Kembali ke Fakultas
+        &larr; Kembali ke Kampus
     </a>
     <h1>{{ $nama }}</h1>
     <p class="subjudul">{{ $k['nama'] }}</p>

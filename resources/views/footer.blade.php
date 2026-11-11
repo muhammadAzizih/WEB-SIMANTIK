@@ -98,7 +98,12 @@
 
             <div>
             <div class="brand-logo">
-                <div class="logo-box">PTN Impian</div>
+                <div class="logo-box">  <svg viewBox="0 0 72 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polygon points="36,3 71,17 36,31 1,17" fill="#1b1b1b"/>
+            <path d="M15 24 V33 C15 40 57 40 57 33 V24 L36 32 Z" fill="#1b1b1b"/>
+            <path d="M66 19 V34" stroke="#1b1b1b" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="66" cy="35" r="2.3" fill="#1b1b1b"/>
+        </svg></div>
                 <div>
                 <h2 class="brand-title">PTN impian</h2>
                 <p class="brand-subtitle">Gerbang Menuju Mimpi</p>

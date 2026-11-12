@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page - PTN Impian</title>
+        <!-- Open Graph Protocol (OGP) - Syarat Web Semantik -->
+    <meta property="og:title" content="PTN Impian - Gerbang Menuju Kampus Impian">
+    <meta property="og:description" content="Temukan kampus negeri (PTN & PTKN) terbaik di Indonesia untuk kamu belajar, berkembang, dan menggapai mimpi.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:image" content="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWlQmkGCv5tXyoGZldrWLLL98jjMZj6hD6fY6hMFiAoXpEVWOxeEHXyCgQ_UpSNvZwAzSsSIqkTYsqYaApXI1XKgaSt95VG0XTSJk36NWZeBWZby33kNInbdDkWOFujNFJqYuIZLxGue-5ZnYxL9prINUdw09Ik_0H_qMPG7swTh2PSD92Zf7D63skKA/s1560/Logo%20Universitas%20Sumatera%20Utara%20(USU).png">
+    <meta property="og:site_name" content="PTN Impian">
+    <meta property="og:locale" content="id_ID">
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -591,40 +599,58 @@
     </script>
 
     <!-- js untuk map -->
+     <!-- js untuk map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // 1. Inisialisasi peta Indonesia (fokus tengah Indonesia, zoom level 5)
         const map = L.map('map').setView([-2.5, 118], 5);
 
+        // 2. Pasang tampilan peta dari OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // data lokasi kordinat masing" ptn
-        const ptn = [
-            {
-                nama: "Universitas Sumatera Utara",
-                lat: 3.5619,
-                lng: 98.6561
-            },
-            {
-                nama: "Universitas Indonesia",
-                lat: -6.3626,
-                lng: 106.8249
-            },
-            {
-                nama: "Universitas Gadjah Mada",
-                lat: -7.7704,
-                lng: 110.3777
-            }
-        ];
+        // 3. Ambil data asli dari API Fuseki (/api/kampus/peta)
+        fetch('/api/kampus/peta')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Gagal mengambil data peta: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(dataKampus => {
+                // 4. Looping setiap kampus yang memiliki koordinat dari Fuseki
+                dataKampus.forEach(kampus => {
+                    if (kampus.lat && kampus.lng) {
+                        // Desain pop-up info saat pin kampus di-klik
+                        const popupContent = `
+                            <div style="font-family: sans-serif; min-width: 180px; padding: 4px;">
+                                <span style="background: #c9d0d9; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+                                    ${kampus.singkatan || 'PTN'}
+                                </span>
+                                <h4 style="margin: 8px 0 4px; font-size: 14px; color: #1a1a1a; line-height: 1.3;">
+                                    ${kampus.nama}
+                                </h4>
+                                <p style="margin: 0 0 10px; font-size: 12px; color: #666;">
+                                     ${kampus.kota}, ${kampus.provinsi}
+                                </p>
+                                <a href="/kampus?id=${kampus.id}" style="display: inline-block; background: #ee7f3e; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold;">
+                                    Lihat Kampus →
+                                </a>
+                            </div>
+                        `;
 
-        // buat marker
-        ptn.forEach(kampus => {
-            L.marker([kampus.lat, kampus.lng])
-                .addTo(map)
-                .bindPopup(`<b>${kampus.nama}</b>`);
-        });
+                        // marker ke peta
+                        L.marker([kampus.lat, kampus.lng])
+                            .addTo(map)
+                            .bindPopup(popupContent);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error memuat peta:', error);
+            });
     </script>
 </body>
 </html>

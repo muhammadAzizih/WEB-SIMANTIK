@@ -4,9 +4,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Alike&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-<header class="univ-header">
+<!-- ATRIBUT SEMANTIK RDFA: vocab Schema.org dan typeof CollegeOrUniversity -->
+<header class="univ-header" vocab="https://schema.org/" typeof="CollegeOrUniversity">
     <div class="univ-logo">
-        <img src="{{ $k['logo'] ?? 'https://placehold.co/220x220/fcebd8/ee7f32?text=Kampus' }}"
+        <img property="logo"
+             src="{{ $k['logo'] ?? 'https://placehold.co/220x220/fcebd8/ee7f32?text=Kampus' }}"
              alt="Logo {{ $k['nama'] }}"
              referrerpolicy="no-referrer"
              style="object-fit: contain; padding: 8px; background: #fff;"
@@ -14,15 +16,20 @@
     </div>
 
     <div class="univ-info">
-        <h1>{{ $k['nama'] }}</h1>
+        <!-- property="name" : Memberitahu mesin nama resmi institusi -->
+        <h1 property="name">{{ $k['nama'] }}</h1>
 
-        <div class="univ-location">
+        <!-- property="address" : Memberitahu mesin data lokasi terstruktur -->
+        <div class="univ-location" property="address" typeof="PostalAddress">
             <svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M7 0C3.1 0 0.5 2.8 0.5 6.2c0 3.3 3.3 7 6.5 8.6c3.2-1.6 6.5-5.3 6.5-8.6C13.5 2.8 10.9 0 7 0z" fill="#000"/>
                 <circle cx="7" cy="6" r="2.4" fill="#fff"/>
                 <ellipse cx="7" cy="16.6" rx="4.2" ry="2.3" fill="none" stroke="#000" stroke-width="1.4"/>
             </svg>
-            <span>{{ $k['kota'] }}, {{ $k['provinsi'] }}</span>
+            <span>
+                <span property="addressLocality">{{ $k['kota'] }}</span>, 
+                <span property="addressRegion">{{ $k['provinsi'] }}</span>
+            </span>
         </div>
 
         <div class="univ-chips">
@@ -35,7 +42,8 @@
 
     <div class="univ-actions">
         @if($k['website'])
-            <a href="{{ $k['website'] }}" target="_blank" rel="noopener" class="btn-outline btn-website">Website Resmi</a>
+            <!-- property="url" : Memberitahu mesin alamat website resmi -->
+            <a property="url" href="{{ $k['website'] }}" target="_blank" rel="noopener" class="btn-outline btn-website">Website Resmi</a>
         @endif
     </div>
 </header>
@@ -49,8 +57,7 @@
 
 <section id="profil">
     <h2>Profil</h2>
-    <p class="content">{{ $k['deskripsi'] ?? ($k['nama'].' berlokasi di '.$k['kota'].', '.$k['provinsi'].'.') }}</p>
-
+ <p class="description">{{ $k['deskripsi'] ?? ($k['nama'].' berlokasi di '.$k['kota'].', '.$k['provinsi'].'.') }}</p>
     <div class="meta">
         <div><small>Jenis Institusi</small>{{ $k['jenis'] }}</div>
         <div><small>Tahun Berdiri</small>{{ $k['tahun'] ?? '-' }}</div>
@@ -111,7 +118,7 @@
     <div class="lokasi-list" style="grid-template-columns: repeat(auto-fit, minmax(250px, 340px)); justify-content: center;">
         @foreach($semuaLokasi as $l)
             <div class="lokasi-card">
-                <h3>📍 {{ $l['nama'] }}</h3>
+                <h3> {{ $l['nama'] }}</h3>
                 <p><b>{{ $l['kota'] }}, {{ $l['provinsi'] }}</b>@if($l['alamat'])<br>{{ $l['alamat'] }}@endif</p>
                 @if($l['lat'] !== null && $l['lng'] !== null)
                     <a href="https://www.google.com/maps/search/?api=1&query={{ $l['lat'] }},{{ $l['lng'] }}" target="_blank" rel="noopener">Lihat Peta</a>

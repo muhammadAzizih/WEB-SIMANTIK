@@ -17,9 +17,12 @@ class ChatbotController extends Controller
         'nya', 'ada', 'kampus', 'ptn', 'tolong', 'dong', 'ya', 'info', 'informasi',
     ];
 
+    // [BARU] kode PT kampus yang disebut di jawaban, dipakai tombol "Lihat di peta"
+    private array $places = [];
+
     public function __construct(private F $fuseki) {}
 
-    // POST /api/chatbot   { "message": "akreditasi usu" }
+    // POST /api/chatbot   { "message": "akreditasi " }
     public function reply(Request $request)
     {
         $raw = mb_substr(trim((string) $request->input('message', '')), 0, 200);
@@ -27,7 +30,7 @@ class ChatbotController extends Controller
         $msg = trim(preg_replace('/\s+/u', ' ', $msg));
 
         if ($msg === '') {
-            return response()->json(['reply' => 'Ketik pertanyaanmu dulu ya.']);
+            return response()->json(['reply' => 'Ketik pertanyaanmu dulu ya.', 'places' => []]);
         }
 
         try {
@@ -35,9 +38,11 @@ class ChatbotController extends Controller
         } catch (\Throwable $e) {
             report($e);
             $reply = 'Maaf, data kampus belum bisa diakses sekarang. Coba lagi sebentar ya.';
+            $this->places = [];
         }
 
-        return response()->json(['reply' => $reply]);
+        // [BARU] tambah field places (frontend lama yang hanya membaca "reply" tetap aman)
+        return response()->json(['reply' => $reply, 'places' => $this->places]);
     }
 
     private function answer(string $msg): string
@@ -90,10 +95,11 @@ class ChatbotController extends Controller
 
         $p = F::lit('\b' . $this->esc($place));
 
+        // [DIUBAH] ikut mengambil ?kode untuk marker peta
         $sparql = <<<SPARQL
-        SELECT DISTINCT ?nama
+        SELECT DISTINCT ?kode ?nama
         WHERE {
-          ?pt a ck:Institusi ; ck:namaInstitusi ?nama .
+          ?pt a ck:Institusi ; ck:kodePT ?kode ; ck:namaInstitusi ?nama .
           OPTIONAL { ?pt ck:kota ?kota }
           OPTIONAL { ?pt ck:provinsi ?provinsi }
           FILTER(
@@ -105,9 +111,12 @@ class ChatbotController extends Controller
         LIMIT 10
         SPARQL;
 
-        $names = collect($this->fuseki->select($sparql))->pluck('nama')->filter()->values();
+        $rows  = collect($this->fuseki->select($sparql));
+        $names = $rows->pluck('nama')->filter()->values();
 
         if ($names->isEmpty()) return "Aku tidak menemukan kampus di \"{$place}\".";
+
+        $this->places = $rows->pluck('kode')->filter()->unique()->values()->all();
 
         $tambah = $names->count() >= 10 ? ' (10 pertama)' : '';
         return "Kampus di {$place}{$tambah}:\n- " . $names->implode("\n- ");
@@ -120,20 +129,24 @@ class ChatbotController extends Controller
 
         $p = F::lit('\b' . $this->esc($prodi));
 
+        // [DIUBAH] ikut mengambil ?kode untuk marker peta
         $sparql = <<<SPARQL
-        SELECT DISTINCT ?nama
+        SELECT DISTINCT ?kode ?nama
         WHERE {
           ?prodi ck:namaProdi ?np ; ck:diselenggarakanOleh ?pt .
-          ?pt ck:namaInstitusi ?nama .
+          ?pt ck:kodePT ?kode ; ck:namaInstitusi ?nama .
           FILTER(REGEX(?np, $p, "i"))
         }
         ORDER BY ?nama
         LIMIT 10
         SPARQL;
 
-        $names = collect($this->fuseki->select($sparql))->pluck('nama')->filter()->values();
+        $rows  = collect($this->fuseki->select($sparql));
+        $names = $rows->pluck('nama')->filter()->values();
 
         if ($names->isEmpty()) return "Aku tidak menemukan kampus dengan prodi \"{$prodi}\".";
+
+        $this->places = $rows->pluck('kode')->filter()->unique()->values()->all();
 
         $tambah = $names->count() >= 10 ? ' (10 pertama)' : '';
         return "Kampus yang punya prodi {$prodi}{$tambah}:\n- " . $names->implode("\n- ");
@@ -203,11 +216,43 @@ class ChatbotController extends Controller
 
     private function ukt(string $msg): string
     {
-        $c    = $this->findCampus($msg);
-        $nama = $c['nama'] ?? 'kampus ini';
-        $web  = !empty($c['web']) ? " Cek di website resminya: {$c['web']}" : '';
+        $c = $this->findCampus($msg);
+        if (!$c) return 'Kampus mana yang kamu maksud? Contoh: "ukt usu".';
 
-        return "Data UKT {$nama} belum tersedia di dataset kami.{$web}";
+        // [DIUBAH] mendukung dua pola relasi UKT: "kampus ck:memilikiUKT ?u" ATAU "?u ck:berlakuDi kampus"
+        // (pola kedua dipakai KampusController / halaman profil kampus)
+        $sparql = <<<SPARQL
+        SELECT DISTINCT ?kel ?rentang ?min
+        WHERE {
+          { <{$c['pt']}> ck:memilikiUKT ?u } UNION { ?u ck:berlakuDi <{$c['pt']}> }
+          ?u ck:kelompokUKT ?kel ;
+             ck:rentangUKT ?rentang .
+          OPTIONAL { ?u ck:nominalMin ?min }
+        }
+        ORDER BY ?min ?kel
+        SPARQL;
+
+        $rows = collect($this->fuseki->select($sparql));
+        $web  = !empty($c['web']) ? "\nWebsite: {$c['web']}" : '';
+
+        if ($rows->isEmpty()) {
+            // cadangan: rentang UKT yang tersimpan langsung di data kampus
+            $base = $this->fuseki->select(
+                'SELECT ?rentang WHERE { <' . $c['pt'] . '> ck:rentangUKT ?rentang } LIMIT 1'
+            );
+            if (!empty($base[0]['rentang'])) {
+                return "Rentang UKT {$c['nama']}: {$base[0]['rentang']}.{$web}";
+            }
+
+            return "Data UKT {$c['nama']} belum tersedia di dataset kami.{$web}";
+        }
+
+        $baris = $rows
+            ->map(fn ($r) => '- ' . ($r['kel'] ?? '-') . ': ' . ($r['rentang'] ?? '-'))
+            ->implode("\n");
+
+        return "Rentang UKT {$c['nama']} per kelompok:\n{$baris}\n"
+            . "Besaran pasti yang dibayar mengikuti ketetapan kampus, jadi cek juga website resminya.{$web}";
     }
 
     private function profil(array $c): string
@@ -242,11 +287,13 @@ class ChatbotController extends Controller
         $exact = F::lit($term);
         $word  = F::lit('\b' . $this->esc($term));
 
+        // [DIUBAH] ikut mengambil ?kode
         $sparql = <<<SPARQL
-        SELECT ?pt ?nama ?singkatan ?akr ?lembaga ?web ?alamat ?kota ?prov ?email ?telp
+        SELECT ?pt ?kode ?nama ?singkatan ?akr ?lembaga ?web ?alamat ?kota ?prov ?email ?telp
                (IF(LCASE(STR(COALESCE(?singkatan, ""))) = $exact, 0, 1) AS ?rank)
         WHERE {
           ?pt a ck:Institusi ; ck:namaInstitusi ?nama .
+          OPTIONAL { ?pt ck:kodePT ?kode }
           OPTIONAL { ?pt ck:singkatan ?singkatan }
           OPTIONAL { ?pt ck:statusAkreditasi ?akr }
           OPTIONAL { ?pt ck:lembagaAkreditasi ?lembaga }
@@ -263,10 +310,17 @@ class ChatbotController extends Controller
         SPARQL;
 
         $rows = $this->fuseki->select($sparql);
-        return $rows[0] ?? null;
+        $c    = $rows[0] ?? null;
+
+        // [BARU] kampus yang ditemukan otomatis jadi "places" untuk tombol peta
+        if ($c && !empty($c['kode'])) {
+            $this->places = [$c['kode']];
+        }
+
+        return $c;
     }
 
-    // buang kata perintah, sisakan nama kampus
+    
     private function cleanTerm(string $text, bool $stripCampusWords = true): string
     {
         $words = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY);

@@ -42,11 +42,14 @@ class KampusController extends Controller
         if (!empty($data['kota']))     $filters[] = '?k ck:kota ' . F::lit($data['kota']) . ' .';
 
         if (!empty($data['q'])) {
-            $q = F::lit(Str::lower($data['q']));
-            $filters[] = "FILTER(CONTAINS(LCASE(?nama), $q) || CONTAINS(LCASE(?singkatan), $q)"
-                . " || CONTAINS(LCASE(?kota), $q) || CONTAINS(LCASE(?provinsi), $q)"
-                . " || EXISTS { ?pq ck:diselenggarakanOleh ?k ; ck:namaProdi ?np . FILTER(CONTAINS(LCASE(?np), $q)) })";
-        }
+              // awal kata; karakter khusus regex di-escape
+            $esc = preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', Str::lower($data['q']));
+            $q   = F::lit('\b' . $esc);
+
+            $filters[] = "FILTER(REGEX(STR(?nama), $q, \"i\") || REGEX(STR(?singkatan), $q, \"i\")"
+            . " || REGEX(STR(?kota), $q, \"i\") || REGEX(STR(?provinsi), $q, \"i\")"
+            . " || EXISTS { ?pq ck:diselenggarakanOleh ?k ; ck:namaProdi ?np . FILTER(REGEX(?np, $q, \"i\")) })";
+       }
 
         // Filter jenjang / prodi: kampus harus punya minimal 1 prodi AKTIF yang cocok
         if (!empty($data['jenjang']) || !empty($data['prodi'])) {
@@ -127,21 +130,25 @@ SPARQL;
     }
 
     // fiz, aku (yoan) nambah ini untuk search ya
+
+    // fiz, yoan, aku (hendri) kuubah yah suggestions pakai CONTAINS ke REGEX 
     public function suggestions(Request $request): JsonResponse
     {
         $q = Str::lower(trim((string) $request->query('q', '')));
 
         $filter = '';
 
-        if ($q !== '') {
-            $literal = F::lit($q);
+if ($q !== '') {
+    // awal kata, karakter khusus regex di-escape
+    $pattern = '\b' . preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', $q);
+    $literal = F::lit($pattern);
 
-            $filter = "FILTER(
-                CONTAINS(LCASE(STR(?nama)), $literal) ||
-                CONTAINS(LCASE(STR(?singkatan)), $literal) ||
-                CONTAINS(LCASE(STR(?kota)), $literal)
-            )";
-        }
+    $filter = "FILTER(
+        REGEX(STR(?nama), $literal, \"i\") ||
+        REGEX(STR(?singkatan), $literal, \"i\") ||
+        REGEX(STR(?kota), $literal, \"i\")
+    )";
+}
 
         $query = <<<SPARQL
         SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?provinsi

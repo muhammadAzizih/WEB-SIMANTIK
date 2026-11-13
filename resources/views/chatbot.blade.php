@@ -111,6 +111,7 @@
         padding: 10px 16px;
         font-size: 14px;
         line-height: 1.4;
+        white-space: pre-line;
     }
 
     .bot-message {
@@ -245,19 +246,43 @@
     const chatInput = document.getElementById('chatbot-input');
     const sendBtn = document.getElementById('chatbot-send-btn');
 
-    function sendMessage() {
-        const message = chatInput.value.trim();
+    function addBubble(text, type) {
+    const bubble = document.createElement('div');
+    bubble.classList.add('chat-message', type);
+    bubble.textContent = text;          // textContent, bukan innerHTML, supaya aman
+    chatBody.appendChild(bubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return bubble;
+}
 
-        if (message === '') return;
+async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (message === '') return;
 
-        const userBubble = document.createElement('div');
-        userBubble.classList.add('chat-message', 'user-message');
-        userBubble.textContent = message;
+    addBubble(message, 'user-message');
+    chatInput.value = '';
 
-        chatBody.appendChild(userBubble);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        chatInput.value = '';
+    const loading = addBubble('Sedang mencari...', 'bot-message');
+
+    try {
+        const res = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+        });
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const data = await res.json();
+        loading.textContent = data.reply;
+    } catch (err) {
+        console.error(err);
+        loading.textContent = 'Maaf, terjadi kesalahan. Coba lagi sebentar ya.';
     }
+}
 
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('keydown', function(e) {

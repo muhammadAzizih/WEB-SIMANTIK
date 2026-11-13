@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page - PTN Impian</title>
-        <!-- Open Graph Protocol (OGP) - Syarat Web Semantik -->
     <meta property="og:title" content="PTN Impian - Gerbang Menuju Kampus Impian">
     <meta property="og:description" content="Temukan kampus negeri (PTN & PTKN) terbaik di Indonesia untuk kamu belajar, berkembang, dan menggapai mimpi.">
     <meta property="og:type" content="website">
@@ -43,7 +42,7 @@
             position: relative;
             width: 100%;
             max-width: 650px;
-            margin: 30px auto;
+            margin: 30px auto 100px;
         }
 
         .search-wrapper .search-container {
@@ -122,11 +121,12 @@
         }
 
         .hero-section {
-            text-align: left;
+            text-align: center;
             padding: 0 6vw;
             margin: 30px auto;
         }
 
+        
         .hero-title {
             font-size:  clamp(26px, 4vw, 38px);
             font-weight: normal;
@@ -136,20 +136,29 @@
 
         .hero-title strong {
             font-weight: bold;
+            background: linear-gradient(90deg, #f6a04d, #e87936, #f5b66c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero-desc {
-            color: #555555;
             font-size: 18px;
             line-height: 1.6;
             margin: 0;
+            background: linear-gradient(90deg, #bd906e, #e5a66e, #bd906e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .category-group {
             display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 20px;
             padding: 0 6vw;
-            margin: 30px auto;
+            margin: 0 auto 35px;
             flex-wrap: wrap;
         }
 
@@ -175,11 +184,13 @@
 
         .filter-wrapper {
             display: flex;
+            justify-content: center;
             align-items: center;
             gap: 12px;
             padding: 0 6vw;
             margin: 30px auto;
             flex-wrap: wrap;
+            margin-bottom: 5px;
         }
 
         .dropdown-group {
@@ -303,24 +314,24 @@
             background: #ee7f3e;
         }
 
-        .btn-filter:hover {
-            background-color: #d96b32;
-        }
-
+        .btn-filter,
         .btn-clear {
-            background-color: #c9d0d9;
+            background: #ffbf5f;
             color: #1a1a1a;
-            border: 2px solid #c9d0d9;
+            border: 2px solid #ffbf5f;
             padding: 8px 24px;
             border-radius: 25px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
-        
+
+        .btn-filter:hover,
         .btn-clear:hover {
-            background-color: #aeb6bf;
+            background: #ee9b45;
+            border-color: #ee9b45;
+            color: #ffffff;
         }
 
         #map {
@@ -341,99 +352,73 @@
         }
 
         @media (max-width: 768px) {
-            .search-container {
-                width: 90%;
-            }
-
-            .hero-section,
-            .category-group,
-            .filter-wrapper {
-                padding-left: 5vw;
-                padding-right: 5vw;
-            }
-
-            .category-group {
-                gap: 12px;
-            }
-
-            .cat-btn {
-                font-size: 15px;
-                padding: 10px 16px;
-            }
-
-            .dropdown-group {
-                width: 100%;
-            }
-
-            .dropdown-item {
-                flex: 1;
-                min-width: 130px;
-            }
-
-            .dropdown-btn {
-                width: 100%;
-                font-size: 14px;
-            }
-
-            .btn-filter,
-            .btn-clear {
-                font-size: 16px;
-            }
-
-            #map {
-                height: 350px;
-            }
+        .hero-section {
+            padding: 0 5vw;
+            margin: 25px auto;
         }
 
-        @media (max-width: 480px) {
-            .hero-desc {
-                font-size: 16px;
-            }
-
-            .hero-desc br {
-                display: none;
-            }
-
-            .category-group {
-                gap: 10px;
-            }
-
-            .cat-btn {
-                font-size: 14px;
-                padding: 10px 12px;
-            }
-
-            .dropdown-item {
-                flex-basis: 100%;
-            }
+        .hero-title {
+            font-size: clamp(24px, 5vw, 32px);
         }
+
+        .hero-desc {
+            font-size: 16px;
+        }
+
+        .search-wrapper {
+            width: 90%;
+            margin: 25px auto;
+        }
+
+        .search-container {
+            width: 100%;
+        }
+    }
+
+    /* RESPONSIVE HP */
+    @media (max-width: 480px) {
+        .hero-section {
+            padding: 0 20px;
+            margin: 20px auto;
+        }
+
+        .hero-title {
+            font-size: 25px;
+            line-height: 1.3;
+        }
+
+        .hero-desc {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .hero-desc br {
+            display: none;
+        }
+
+        .search-wrapper {
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        .search-container {
+            padding: 6px 10px;
+        }
+
+        .search-container input {
+            font-size: 13px;
+        }
+
+        .search-icon-box {
+            padding: 7px 9px;
+            margin-right: 8px;
+        }
+    }
     </style>
 </head>
 <body>
 
     @include('navbar')
-
-    <div class="search-wrapper">
-        <div class="search-container">
-            <div class="search-icon-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </div>
-
-            <input type="text" id="search-input"
-                placeholder="Cari nama kampus, jurusan, lokasi dan lainnya..."
-                autocomplete="off">
-
-            <button class="mic-btn">
-                <!-- SVG microphone tetap gunakan yang sebelumnya -->
-            </button>
-        </div>
-
-        <div id="search-suggestions" class="search-suggestions"></div>
-    </div>
 
     <div class="hero-section">
         <h1 class="hero-title">Selamat datang di <strong>PTN impian</strong></h1>
@@ -443,11 +428,31 @@
         </p>
     </div>
 
+    <div class="search-wrapper">
+            <div class="search-container">
+                <div class="search-icon-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+
+                <input type="text" id="search-input"
+                    placeholder="Cari nama kampus, jurusan, lokasi dan lainnya..."
+                    autocomplete="off">
+
+                <button class="mic-btn">
+                </button>
+            </div>
+
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+
     <div class="category-group">
         <button class="cat-btn active" data-kategori="">🏛️ Semua Kampus</button>
         <button class="cat-btn" data-kategori="PTN_UMUM">🏛️ PTN Umum</button>
         <button class="cat-btn" data-kategori="PTKN">⚙️ PTKN</button>
-        <!-- <button class="cat-btn">🏢 Institut</button> -->
     </div>
 
     <div class="filter-wrapper">        <div class="dropdown-group">

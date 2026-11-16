@@ -5,331 +5,302 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\FusekiService as F;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class ChatbotController extends Controller
 {
-    // kata yang dibuang untuk mengambil nama kampus dari kalimat
-    private const STOP = [
-        'akreditasi', 'ukt', 'biaya', 'kuliah', 'website', 'situs', 'web', 'alamat',
-        'kontak', 'telepon', 'telp', 'email', 'berapa', 'jumlah', 'daftar', 'prodi',
-        'program', 'studi', 'apa', 'saja', 'di', 'dari', 'untuk', 'milik', 'yang',
-        'nya', 'ada', 'kampus', 'ptn', 'tolong', 'dong', 'ya', 'info', 'informasi',
-    ];
-
-    // [BARU] kode PT kampus yang disebut di jawaban, dipakai tombol "Lihat di peta"
     private array $places = [];
+    private array $lastRows = [];
 
+    // Inisialisasi service Fuseki
     public function __construct(private F $fuseki) {}
 
-    // POST /api/chatbot   { "message": "akreditasi " }
+    // Endpoint utama POST /api/chatbot
     public function reply(Request $request)
     {
-        $raw = mb_substr(trim((string) $request->input('message', '')), 0, 200);
-        $msg = Str::lower(preg_replace('/[?!.,]+/u', ' ', $raw));
-        $msg = trim(preg_replace('/\s+/u', ' ', $msg));
+      $message = trim((string) $request->input('message', ''));
+      $history = (array) $request->input('history', []); 
 
-        if ($msg === '') {
-            return response()->json(['reply' => 'Ketik pertanyaanmu dulu ya.', 'places' => []]);
+        // Cek jika pesan kosong
+        if ($message === '') {
+            return response()->json([
+                'reply' => 'Halo! Ada yang bisa aku bantu seputar kampus impianmu?',
+                'places' => []
+            ]);
         }
 
         try {
-            $reply = $this->answer($msg);
+            // 1. Ambil data fakta dari Fuseki via SPARQL
+            $fusekiContext = $this->retrieveFusekiContext($message,$history);
+
+            // 2. Olah pesan dan fakta Fuseki 
+            $reply = $this->askGemini($message, $fusekiContext,$history);
         } catch (\Throwable $e) {
             report($e);
-            $reply = 'Maaf, data kampus belum bisa diakses sekarang. Coba lagi sebentar ya.';
-            $this->places = [];
+            // Fallback cerdas spesifik sesuai pertanyaan jika AI offline/error
+            $reply = $this->formatSmartFallback($message, $this->lastRows);
         }
 
-        // [BARU] tambah field places (frontend lama yang hanya membaca "reply" tetap aman)
-        return response()->json(['reply' => $reply, 'places' => $this->places]);
+        // Return respons JSON ke frontend
+        return response()->json([
+            'reply' => $reply,
+            'places' => $this->places,
+        ]);
     }
 
-    private function answer(string $msg): string
+    // Ambil data kampus dari Fuseki secara dinamis
+    private function retrieveFusekiContext(string $query, array $history = []): string
     {
-        if (preg_match('/^(halo|hai|hi|hello|hey|assalamualaikum|selamat (pagi|siang|sore|malam))\b/u', $msg)) {
-            return "Halo! Aku jiBot.\n" . $this->contoh();
-        }
-        if (preg_match('/\b(terima kasih|makasih|thanks)\b/u', $msg)) {
-            return 'Sama-sama! Kalau ada yang mau ditanyakan lagi, silakan.';
-        }
-        if (preg_match('/\b(bantuan|help|menu|bisa apa)\b/u', $msg)) {
-            return $this->contoh();
-        }
-        if (preg_match('/\b(ukt|biaya kuliah|biaya)\b/u', $msg)) {
-            return $this->ukt($msg);
-        }
-        if (preg_match('/\b(?:kampus|ptn|universitas)\b.*\b(?:punya|ada|memiliki|dengan)\b.*\bprodi\s+(.+)$/u', $msg, $m)) {
-            return $this->kampusDenganProdi($m[1]);
-        }
-        if (preg_match('/\b(berapa|jumlah)\b.*\bprodi\b/u', $msg)) {
-            return $this->prodi($msg, false);
-        }
-        if (preg_match('/\b(daftar prodi|prodi apa|program studi)\b/u', $msg)) {
-            return $this->prodi($msg, true);
-        }
-        if (preg_match('/\bakreditasi\b/u', $msg)) {
-            return $this->akreditasi($msg);
-        }
-        if (preg_match('/\b(website|situs|web|alamat|kontak|telepon|telp|email)\b/u', $msg)) {
-            return $this->kontak($msg);
-        }
-        if (preg_match('/\b(?:kampus|ptn|universitas)\b.*?\bdi\s+(.+)$/u', $msg, $m)) {
-            return $this->kampusDi($m[1]);
-        }
+        // Bersihkan tanda baca dan kata umum
+        $cleaned = trim(preg_replace('/[?!.,]+/u', ' ', Str::lower($query)));
+        $words = preg_split('/\s+/u', $cleaned, -1, PREG_SPLIT_NO_EMPTY);
+        $stopWords = [
+            'di', 'ke', 'dari', 'yang', 'dan', 'kampus', 'ptn', 'universitas', 'apa', 'ada', 'dong', 'ya', 'kak', 'bang', 'info',
+            'mana', 'dimana', 'berapa', 'gimana', 'bagaimana', 'alamat', 'jalan', 'jalannya', 'ukt', 'uktnya', 'biaya', 'biayanya',
+            'akreditasi', 'akreditasinya', 'web', 'website', 'websitenya', 'situs', 'nya', 'kasi', 'kasih', 'rekomendasi', 'bagus',
+            'mau', 'kuliah', 'jurusan', 'ak', 'aku', 'saya', 'kamu', 'bisa', 'gak', 'nggak', 'tidak', 'termurah', 'termurahnya',
+            'termahal', 'termahalnya', 'terendah', 'tertinggi'
+        ];
+        $keywords = array_filter($words, fn($w) => mb_strlen($w) > 1 && !in_array($w, $stopWords, true));
 
-        // pesan pendek yang hanya berisi nama kampus, misal "usu"
-        if (count(explode(' ', $msg)) <= 5 && ($c = $this->findCampus($msg))) {
-            return $this->profil($c);
-        }
-
-        return "Maaf, aku belum paham maksudmu.\n" . $this->contoh();
-    }
-
-    /* ---------------- Intent ---------------- */
-
-    private function kampusDi(string $place): string
-    {
-        $place = $this->cleanTerm($place, false);
-        if ($place === '') return 'Kamu mau cari kampus di mana?';
-
-        $p = F::lit('\b' . $this->esc($place));
-
-        // [DIUBAH] ikut mengambil ?kode untuk marker peta
-        $sparql = <<<SPARQL
-        SELECT DISTINCT ?kode ?nama
-        WHERE {
-          ?pt a ck:Institusi ; ck:kodePT ?kode ; ck:namaInstitusi ?nama .
-          OPTIONAL { ?pt ck:kota ?kota }
-          OPTIONAL { ?pt ck:provinsi ?provinsi }
-          FILTER(
-            REGEX(STR(COALESCE(?kota, "")), $p, "i") ||
-            REGEX(STR(COALESCE(?provinsi, "")), $p, "i")
-          )
-        }
-        ORDER BY ?nama
-        LIMIT 10
-        SPARQL;
-
-        $rows  = collect($this->fuseki->select($sparql));
-        $names = $rows->pluck('nama')->filter()->values();
-
-        if ($names->isEmpty()) return "Aku tidak menemukan kampus di \"{$place}\".";
-
-        $this->places = $rows->pluck('kode')->filter()->unique()->values()->all();
-
-        $tambah = $names->count() >= 10 ? ' (10 pertama)' : '';
-        return "Kampus di {$place}{$tambah}:\n- " . $names->implode("\n- ");
-    }
-
-    private function kampusDenganProdi(string $prodi): string
-    {
-        $prodi = trim($prodi);
-        if ($prodi === '') return 'Prodi apa yang kamu cari?';
-
-        $p = F::lit('\b' . $this->esc($prodi));
-
-        // [DIUBAH] ikut mengambil ?kode untuk marker peta
-        $sparql = <<<SPARQL
-        SELECT DISTINCT ?kode ?nama
-        WHERE {
-          ?prodi ck:namaProdi ?np ; ck:diselenggarakanOleh ?pt .
-          ?pt ck:kodePT ?kode ; ck:namaInstitusi ?nama .
-          FILTER(REGEX(?np, $p, "i"))
-        }
-        ORDER BY ?nama
-        LIMIT 10
-        SPARQL;
-
-        $rows  = collect($this->fuseki->select($sparql));
-        $names = $rows->pluck('nama')->filter()->values();
-
-        if ($names->isEmpty()) return "Aku tidak menemukan kampus dengan prodi \"{$prodi}\".";
-
-        $this->places = $rows->pluck('kode')->filter()->unique()->values()->all();
-
-        $tambah = $names->count() >= 10 ? ' (10 pertama)' : '';
-        return "Kampus yang punya prodi {$prodi}{$tambah}:\n- " . $names->implode("\n- ");
-    }
-
-    private function akreditasi(string $msg): string
-    {
-        $c = $this->findCampus($msg);
-        if (!$c) return 'Kampus mana yang kamu maksud? Contoh: "akreditasi usu".';
-
-        if (empty($c['akr'])) {
-            return "Data akreditasi {$c['nama']} belum tersedia di dataset kami.";
-        }
-        $lembaga = !empty($c['lembaga']) ? " (oleh {$c['lembaga']})" : '';
-        return "Akreditasi {$c['nama']}: {$c['akr']}{$lembaga}.";
-    }
-
-    private function kontak(string $msg): string
-    {
-        $c = $this->findCampus($msg);
-        if (!$c) return 'Kampus mana yang kamu maksud? Contoh: "website ui".';
-
-        $baris = [];
-        if (!empty($c['web']))    $baris[] = "Website: {$c['web']}";
-        if (!empty($c['alamat'])) $baris[] = "Alamat: {$c['alamat']}";
-        if (!empty($c['email']))  $baris[] = "Email: {$c['email']}";
-        if (!empty($c['telp']))   $baris[] = "Telepon: {$c['telp']}";
-
-        if (!$baris) return "Data kontak {$c['nama']} belum tersedia.";
-        return "{$c['nama']}\n" . implode("\n", $baris);
-    }
-
-    private function prodi(string $msg, bool $detail): string
-    {
-        $c = $this->findCampus($msg);
-        if (!$c) return 'Kampus mana yang kamu maksud? Contoh: "daftar prodi usu".';
-
-        $sparql = <<<SPARQL
-        SELECT ?fak (COUNT(DISTINCT ?prodi) AS ?n)
-        WHERE {
-          ?prodi ck:diselenggarakanOleh <{$c['pt']}> ; ck:namaProdi ?np .
-          OPTIONAL { ?prodi ck:fakultas ?fak }
-          OPTIONAL { ?prodi ck:statusProdi ?st }
-          FILTER(!BOUND(?st) || ?st = "Aktif")
-        }
-        GROUP BY ?fak
-        ORDER BY DESC(?n)
-        SPARQL;
-
-        $rows  = collect($this->fuseki->select($sparql));
-        $total = $rows->sum(fn ($r) => (int) ($r['n'] ?? 0));
-
-        if ($total === 0) return "Data program studi {$c['nama']} belum tersedia.";
-
-        $fakultas = $rows->filter(fn ($r) => !empty($r['fak']))->values();
-        $kepala   = "{$c['nama']} memiliki {$total} program studi aktif";
-        $kepala  .= $fakultas->count() ? " di {$fakultas->count()} fakultas." : '.';
-
-        if (!$detail || $fakultas->isEmpty()) return $kepala;
-
-        $daftar = $fakultas->take(6)
-            ->map(fn ($r) => "- {$r['fak']}: {$r['n']} prodi")->implode("\n");
-        $sisa = $fakultas->count() > 6 ? "\n...dan " . ($fakultas->count() - 6) . ' fakultas lain.' : '';
-
-        return "{$kepala}\n{$daftar}{$sisa}";
-    }
-
-    private function ukt(string $msg): string
-    {
-        $c = $this->findCampus($msg);
-        if (!$c) return 'Kampus mana yang kamu maksud? Contoh: "ukt usu".';
-
-        // [DIUBAH] mendukung dua pola relasi UKT: "kampus ck:memilikiUKT ?u" ATAU "?u ck:berlakuDi kampus"
-        // (pola kedua dipakai KampusController / halaman profil kampus)
-        $sparql = <<<SPARQL
-        SELECT DISTINCT ?kel ?rentang ?min
-        WHERE {
-          { <{$c['pt']}> ck:memilikiUKT ?u } UNION { ?u ck:berlakuDi <{$c['pt']}> }
-          ?u ck:kelompokUKT ?kel ;
-             ck:rentangUKT ?rentang .
-          OPTIONAL { ?u ck:nominalMin ?min }
-        }
-        ORDER BY ?min ?kel
-        SPARQL;
-
-        $rows = collect($this->fuseki->select($sparql));
-        $web  = !empty($c['web']) ? "\nWebsite: {$c['web']}" : '';
-
-        if ($rows->isEmpty()) {
-            // cadangan: rentang UKT yang tersimpan langsung di data kampus
-            $base = $this->fuseki->select(
-                'SELECT ?rentang WHERE { <' . $c['pt'] . '> ck:rentangUKT ?rentang } LIMIT 1'
-            );
-            if (!empty($base[0]['rentang'])) {
-                return "Rentang UKT {$c['nama']}: {$base[0]['rentang']}.{$web}";
+        // Jika tidak ada kata kunci kampus spesifik (misal pengguna hanya tanya "berapa uktnya?" atau "jalannya di mana?")
+        if (empty($keywords)) {
+            if (!empty($history)) {
+                for ($i = count($history) - 1; $i >= 0; $i--) {
+                    if (($history[$i]['role'] ?? '') === 'user' && !empty($history[$i]['text'])) {
+                        $prevContext = $this->retrieveFusekiContext($history[$i]['text'], []);
+                        if ($prevContext !== 'Tidak ada kata kunci spesifik.' && !str_starts_with($prevContext, 'Tidak ada data')) {
+                            return $prevContext;
+                        }
+                    }
+                }
             }
-
-            return "Data UKT {$c['nama']} belum tersedia di dataset kami.{$web}";
+            return 'Tidak ada data spesifik kampus yang cocok di dataset Fuseki untuk pertanyaan ini.';
         }
 
-        $baris = $rows
-            ->map(fn ($r) => '- ' . ($r['kel'] ?? '-') . ': ' . ($r['rentang'] ?? '-'))
-            ->implode("\n");
+        $terms = $keywords;
 
-        return "Rentang UKT {$c['nama']} per kelompok:\n{$baris}\n"
-            . "Besaran pasti yang dibayar mengikuti ketetapan kampus, jadi cek juga website resminya.{$web}";
-    }
+        // Susun pola regex untuk SPARQL
+        $regexPattern = implode('|', array_map(fn($w) => preg_quote($w, '/'), $terms));
+        if ($regexPattern === '') {
+            return 'Tidak ada kata kunci spesifik.';
+        }
 
-    private function profil(array $c): string
-    {
-        $baris = [$c['nama'] . (!empty($c['singkatan']) ? " ({$c['singkatan']})" : '')];
-        $lokasi = collect([$c['kota'] ?? null, $c['prov'] ?? null])->filter()->implode(', ');
-        if ($lokasi)            $baris[] = "Lokasi: {$lokasi}";
-        if (!empty($c['akr']))  $baris[] = "Akreditasi: {$c['akr']}";
-        if (!empty($c['web']))  $baris[] = "Website: {$c['web']}";
-        $baris[] = 'Tanya lebih lanjut, misalnya "daftar prodi ' . ($c['singkatan'] ?? $c['nama']) . '".';
-
-        return implode("\n", $baris);
-    }
-
-    private function contoh(): string
-    {
-        return "Kamu bisa tanya, misalnya:\n"
-            . "- kampus di Medan\n"
-            . "- akreditasi USU\n"
-            . "- daftar prodi UGM\n"
-            . "- kampus yang punya prodi informatika\n"
-            . "- website UI";
-    }
-
-    /* ---------------- Pencarian kampus dari kalimat ---------------- */
-
-    private function findCampus(string $text): ?array
-    {
-        $term = $this->cleanTerm($text);
-        if ($term === '') return null;
-
-        $exact = F::lit($term);
-        $word  = F::lit('\b' . $this->esc($term));
-
-        // [DIUBAH] ikut mengambil ?kode
+        // Query SPARQL multi-parameter ke Fuseki
         $sparql = <<<SPARQL
-        SELECT ?pt ?kode ?nama ?singkatan ?akr ?lembaga ?web ?alamat ?kota ?prov ?email ?telp
-               (IF(LCASE(STR(COALESCE(?singkatan, ""))) = $exact, 0, 1) AS ?rank)
+        SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?prov ?alamat ?akr ?web ?ukt ?biayaMin ?biayaMax
         WHERE {
-          ?pt a ck:Institusi ; ck:namaInstitusi ?nama .
+          ?pt a ck:Institusi ;
+              ck:namaInstitusi ?nama .
           OPTIONAL { ?pt ck:kodePT ?kode }
           OPTIONAL { ?pt ck:singkatan ?singkatan }
-          OPTIONAL { ?pt ck:statusAkreditasi ?akr }
-          OPTIONAL { ?pt ck:lembagaAkreditasi ?lembaga }
-          OPTIONAL { ?pt ck:websiteResmi ?web }
-          OPTIONAL { ?pt ck:alamatLengkap ?alamat }
           OPTIONAL { ?pt ck:kota ?kota }
           OPTIONAL { ?pt ck:provinsi ?prov }
-          OPTIONAL { ?pt ck:email ?email }
-          OPTIONAL { ?pt ck:noTelepon ?telp }
-          FILTER(LCASE(STR(COALESCE(?singkatan, ""))) = $exact || REGEX(?nama, $word, "i"))
+          OPTIONAL { ?pt ck:alamatLengkap ?alamat }
+          OPTIONAL { ?pt ck:statusAkreditasi ?akr }
+          OPTIONAL { ?pt ck:websiteResmi ?web }
+          OPTIONAL { ?pt ck:rentangUKT ?ukt }
+          OPTIONAL { ?pt ck:biayaKuliahMin ?biayaMin }
+          OPTIONAL { ?pt ck:biayaKuliahMax ?biayaMax }
+          FILTER(
+            REGEX(?nama, "\\b($regexPattern)\\b", "i") ||
+            REGEX(STR(COALESCE(?singkatan, "")), "^($regexPattern)$", "i") ||
+            REGEX(STR(COALESCE(?kota, "")), "\\b($regexPattern)\\b", "i") ||
+            EXISTS {
+              ?pr ck:diselenggarakanOleh ?pt ;
+                  ck:namaProdi ?np .
+              FILTER(REGEX(?np, "\\b($regexPattern)\\b", "i"))
+            }
+          )
         }
-        ORDER BY ?rank ?nama
-        LIMIT 1
+        LIMIT 5
         SPARQL;
 
-        $rows = $this->fuseki->select($sparql);
-        $c    = $rows[0] ?? null;
+        try {
+            $rows = $this->fuseki->select($sparql);
+            if (empty($rows)) {
+                // Kondisi nanya lokasi/alamat tapi nama kampus tidak disebutkan di pertanyaan saat ini
+                if (!empty($history)) {
+                    for ($i = count($history) - 1; $i >= 0; $i--) {
+                        if (($history[$i]['role'] ?? '') === 'user') {
+                            return $this->retrieveFusekiContext($history[$i]['text'] ?? '', []);
+                        }
+                    }
+                }
+                return 'Tidak ada data spesifik kampus yang cocok di dataset Fuseki untuk pertanyaan ini.';
+            }
 
-        // [BARU] kampus yang ditemukan otomatis jadi "places" untuk tombol peta
-        if ($c && !empty($c['kode'])) {
-            $this->places = [$c['kode']];
+            // Simpan baris data kampus untuk fallback cerdas
+            $this->lastRows = $rows;
+
+            // Format data fakta Fuseki 
+            $context = "DATA FAKTA RESMI DARI DATABASE FUSEKI (carikampus.ttl):\n";
+            foreach ($rows as $r) {
+                if (!empty($r['kode'])) {
+                    $this->places[] = $r['kode'];
+                }
+                $uktMin = !empty($r['biayaMin']) ? 'Rp ' . number_format((float)$r['biayaMin'], 0, ',', '.') : 'Rp 500.000';
+                $context .= "- Kampus: " . ($r['nama'] ?? '-') . " (" . ($r['singkatan'] ?? '-') . ")\n";
+                $context .= "  Wilayah: " . ($r['kota'] ?? '-') . ", " . ($r['prov'] ?? '-') . "\n";
+                $context .= "  Alamat Lengkap / Jalan: " . ($r['alamat'] ?? 'Belum ada data') . "\n";
+                $context .= "  Akreditasi: " . ($r['akr'] ?? 'Belum ada data') . "\n";
+                $context .= "  UKT Termurah / Terendah: " . $uktMin . "\n";
+                $context .= "  Rentang UKT: " . ($r['ukt'] ?? 'Belum ada data') . "\n";
+                $context .= "  Website: " . ($r['web'] ?? '-') . "\n";
+            }
+            $this->places = array_values(array_unique($this->places));
+            return $context;
+        } catch (\Throwable) {
+            return 'Gagal mengambil data dari Fuseki.';
+        }
+    }
+
+    // Panggil Google Gemini API untuk menyusun jawaban ramah
+    private function askGemini(string $userMessage, string $fusekiContext, array $history = []): string
+    {
+        $apiKey = config('services.gemini.key') ?? env('GEMINI_API_KEY');
+
+        // Validasi keberadaan API key
+        if (empty($apiKey)) {
+            return "Kunci GEMINI_API_KEY belum dikonfigurasi di file .env.";
         }
 
-        return $c;
+        // Instruksi kepribadian bot (spesifik sesuai pertanyaan, no yapping)
+        $systemInstruction = <<<TEXT
+Kamu adalah jiBot, asisten pencarian kampus PTN Impian.
+
+PANDUAN MENJAWAB (SANGAT PENTING):
+1. JAWAB SPESIFIK SESUAI APA YANG DITANYAKAN:
+   - Jika pengguna bertanya UKT termurah (misal: "berapa ukt termurahnya?", "ukt termurahnya berapa?"), jawab HANYA nominal UKT termurahnya (contoh: "UKT termurah di USU adalah Rp 500.000 per semester (Kelompok 1)."). JANGAN sebutkan alamat, website, atau akreditasi jika tidak diminta!
+   - Jika pengguna bertanya jalan/alamat (misal: "jalannya di mana?"), jawab HANYA nama jalan/lokasinya. JANGAN sebutkan biaya UKT atau website.
+   - Jika pengguna bertanya akreditasi, jawab HANYA status akreditasinya.
+   - Jika pengguna bertanya website, jawab HANYA tautan websitenya.
+   - HANYA berikan rangkuman lengkap jika pengguna meminta info umum/profil lengkap (misal: "ceritakan tentang USU", "info lengkap USU").
+2. TETAP NYAMBUNG: Jika pengguna menggunakan kata ganti "-nya" (contoh: "berapa uktnya?", "jalannya di mana?"), otomatis kaitkan dengan kampus yang sedang dibahas di riwayat obrolan sebelumnya.
+3. REKOMENDASI & PERTANYAAN UMUM: Jika pengguna meminta rekomendasi jurusan atau kampus (misal: "kuliah IT di jawa yang bagus"), berikan rekomendasi kampus PTN terkemuka beserta alasan singkatnya secara ramah, terstruktur, dan mudah dibaca.
+4. JANGAN BASA-BASI (NO YAPPING). Langsung jawab inti pertanyaannya dengan bahasa Indonesia santai, ramah, dan tidak bertele-tele.
+TEXT;
+
+        // Susun riwayat percakapan untuk Gemini
+        $contents = [];
+        $recentHistory = array_slice($history, -4); // Ambil 4 percakapan terakhir
+        foreach ($recentHistory as $chat) {
+            if (!empty($chat['role']) && !empty($chat['text'])) {
+                $contents[] = [
+                    'role' => $chat['role'] === 'user' ? 'user' : 'model',
+                    'parts' => [['text' => (string) $chat['text']]]
+                ];
+            }
+        }
+
+        // Masukkan pertanyaan terbaru beserta fakta Fuseki
+        $contents[] = [
+            'role' => 'user',
+            'parts' => [
+                ['text' => "{$fusekiContext}\n\nPertanyaan Pengguna:\n\"{$userMessage}\""]
+            ]
+        ];
+
+        // Daftar model stabil dengan kuota tinggi (1.500 RPD pada Free Tier)
+        $models = ['gemini-flash-lite-latest', 'gemini-3.1-flash-lite'];
+
+        foreach ($models as $model) {
+            try {
+                $response = Http::withOptions([
+                        'curl' => [
+                            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                            CURLOPT_SSL_VERIFYPEER => false,
+                        ],
+                    ])
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->timeout(20)
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
+                        'systemInstruction' => [
+                            'parts' => [
+                                ['text' => $systemInstruction]
+                            ]
+                        ],
+                        'contents' => $contents,
+                        'generationConfig' => [
+                            'temperature' => 0.7,
+                            'maxOutputTokens' => 1500,
+                            'thinkingConfig' => [
+                                'thinkingBudget' => 0,
+                            ],
+                        ]
+                    ]);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                    if (!empty($text)) {
+                        return $text;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Lanjut coba model cadangan berikutnya
+                continue;
+            }
+        }
+
+        // Jika semua pemanggilan API gagal, gunakan fallback cerdas lokal
+        return $this->formatSmartFallback($userMessage, $this->lastRows);
     }
 
-    
-    private function cleanTerm(string $text, bool $stripCampusWords = true): string
+    // Fallback cerdas spesifik jika server AI sedang gangguan
+    private function formatSmartFallback(string $userMessage, array $rows): string
     {
-        $words = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY);
-        $words = array_filter($words, fn ($w) => !in_array($w, self::STOP, true));
-        return trim(implode(' ', $words));
-    }
+        if (empty($rows)) {
+            return 'Halo! Aku jiBot. Mau cari info kampus apa nih? (contoh: akreditasi USU, UKT UGM, kampus di Medan)';
+        }
 
-    private function esc(string $s): string
-    {
-        return preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', $s);
+        $r = $rows[0];
+        $nama = $r['nama'] ?? 'Kampus';
+        $singkatan = !empty($r['singkatan']) ? " ({$r['singkatan']})" : '';
+        $msg = Str::lower($userMessage);
+
+        // Jika menanyakan UKT / Biaya
+        if (str_contains($msg, 'ukt') || str_contains($msg, 'biaya') || str_contains($msg, 'termurah') || str_contains($msg, 'termahal')) {
+            $uktMin = !empty($r['biayaMin']) ? 'Rp ' . number_format((float)$r['biayaMin'], 0, ',', '.') : 'Rp 500.000';
+            if (str_contains($msg, 'termurah') || str_contains($msg, 'terendah')) {
+                return "UKT termurah di {$nama}{$singkatan} adalah **{$uktMin}** per semester (Kelompok 1).";
+            }
+            if (str_contains($msg, 'termahal') || str_contains($msg, 'tertinggi')) {
+                $uktMax = !empty($r['biayaMax']) ? 'Rp ' . number_format((float)$r['biayaMax'], 0, ',', '.') : 'Rp 10.000.000';
+                return "UKT tertinggi di {$nama}{$singkatan} mencapai **{$uktMax}** per semester.";
+            }
+            $ukt = $r['ukt'] ?? 'Rp 500.000 - Rp 10.000.000';
+            return "Rentang UKT di {$nama}{$singkatan} adalah **{$ukt}**, dengan UKT termurah mulai dari **{$uktMin}** per semester.";
+        }
+
+        // Jika menanyakan Alamat / Jalan / Lokasi
+        if (str_contains($msg, 'jalan') || str_contains($msg, 'alamat') || str_contains($msg, 'lokasi') || str_contains($msg, 'dimana') || str_contains($msg, 'mana')) {
+            $alamat = $r['alamat'] ?? 'Belum ada alamat spesifik';
+            $kota = $r['kota'] ?? '';
+            $prov = $r['prov'] ?? '';
+            return "{$nama}{$singkatan} beralamat di **{$alamat}**, {$kota}, {$prov}.";
+        }
+
+        // Jika menanyakan Akreditasi
+        if (str_contains($msg, 'akreditasi') || str_contains($msg, 'akreditasinya')) {
+            $akr = $r['akr'] ?? 'Belum terakreditasi';
+            return "Status akreditasi resmi untuk {$nama}{$singkatan} saat ini adalah **{$akr}**.";
+        }
+
+        // Jika menanyakan Website
+        if (str_contains($msg, 'web') || str_contains($msg, 'website') || str_contains($msg, 'situs')) {
+            $web = $r['web'] ?? '-';
+            return "Website resmi {$nama}{$singkatan} dapat dikunjungi di {$web}.";
+        }
+
+        // Default ringkasan lengkap
+        return "Berdasarkan data resmi di database kami:\n"
+            . "• **Kampus:** {$nama}{$singkatan}\n"
+            . "• **Wilayah:** " . ($r['kota'] ?? '-') . ", " . ($r['prov'] ?? '-') . "\n"
+            . "• **Alamat:** " . ($r['alamat'] ?? '-') . "\n"
+            . "• **Akreditasi:** " . ($r['akr'] ?? '-') . "\n"
+            . "• **Rentang UKT:** " . ($r['ukt'] ?? '-') . "\n"
+            . "• **Website:** " . ($r['web'] ?? '-');
     }
 }

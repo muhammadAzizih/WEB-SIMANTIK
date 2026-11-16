@@ -93,6 +93,18 @@
             font-size: 12px;
         }
 
+        .suggestion-cabang {
+            display: inline-block;
+            padding: 1px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #c2410c;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 4px;
+            margin-left: 4px;
+        }
+
         .search-icon-box {
             display: flex;
             align-items: center;
@@ -544,6 +556,15 @@
                     const lokasi = document.createElement('small');
                     lokasi.textContent = `${kampus.kota}, ${kampus.provinsi}`;
 
+                    // Info kampus cabang tanpa emoji
+                    if (kampus.cabang) {
+                        const badge = document.createElement('span');
+                        badge.className = 'suggestion-cabang';
+                        badge.textContent = `Cabang: ${kampus.cabang}`;
+                        lokasi.appendChild(document.createTextNode(' • '));
+                        lokasi.appendChild(badge);
+                    }
+
                     item.append(nama, lokasi);
 
                     item.addEventListener('click', () => {
@@ -561,6 +582,19 @@
                 }
             }
         }
+
+        // Tekan Enter untuk navigasi ke rekomendasi pertama
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const firstItem = suggestionsBox.querySelector('.suggestion-item');
+                if (suggestionsBox.classList.contains('show') && firstItem) {
+                    e.preventDefault();
+                    firstItem.click();
+                } else {
+                    suggestionsBox.classList.remove('show');
+                }
+            }
+        });
 
         searchInput.addEventListener('focus', () => {
             loadSuggestions(searchInput.value.trim());

@@ -201,8 +201,22 @@
   /* ---------- Kolom cari (atas) ---------- */
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
-    const doSearch = () => { state.q = searchInput.value.trim(); state.page = 1; loadKampus(); };
-    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+    const doSearch = () => {
+      state.q = searchInput.value.trim();
+      state.page = 1;
+      const box = document.getElementById('search-suggestions');
+      if (box) box.classList.remove('show');
+      loadKampus();
+    };
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const box = document.getElementById('search-suggestions');
+        const first = box ? box.querySelector('.suggestion-item') : null;
+        if (!box || !box.classList.contains('show') || !first) {
+          doSearch();
+        }
+      }
+    });
     const iconBox = document.querySelector('.search-icon-box');
     if (iconBox) { iconBox.style.cursor = 'pointer'; iconBox.addEventListener('click', doSearch); }
   }

@@ -107,11 +107,12 @@
     }
 
     .chat-message {
-        max-width: 75%;
+        max-width: 85%;
         padding: 10px 16px;
         font-size: 14px;
-        line-height: 1.4;
+        line-height: 1.45;
         white-space: pre-line;
+        word-break: break-word;
     }
 
     .bot-message {
@@ -189,7 +190,10 @@
 </div>
                 <span class="chatbot-title">jiBot</span>
             </div>
-            <button class="chatbot-close-btn" onclick="toggleChatbot()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button title="Bersihkan obrolan" onclick="resetChat()" style="background: transparent; border: none; color: white; cursor: pointer; font-size: 14px; padding: 2px 4px; opacity: 0.85;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">🔄</button>
+                <button class="chatbot-close-btn" onclick="toggleChatbot()">&times;</button>
+            </div>
         </div>
 
         <!-- Area Pesan (Body) -->
@@ -246,43 +250,99 @@
     const chatInput = document.getElementById('chatbot-input');
     const sendBtn = document.getElementById('chatbot-send-btn');
 
-    function addBubble(text, type) {
-    const bubble = document.createElement('div');
-    bubble.classList.add('chat-message', type);
-    bubble.textContent = text;          // textContent, bukan innerHTML, supaya aman
-    chatBody.appendChild(bubble);
-    chatBody.scrollTop = chatBody.scrollHeight;
-    return bubble;
-}
+    // Fungsi format teks bot (mengubah markdown **tebal**, bullet point, dan link)
+    function formatChatText(text) {
+        if (!text) return '';
+        // 1. Escape HTML agar aman
+        let html = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
 
-async function sendMessage() {
-    const message = chatInput.value.trim();
-    if (message === '') return;
+        // 2. Format Bold (**teks** -> <strong>teks</strong>)
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 700;">$1</strong>');
 
-    addBubble(message, 'user-message');
-    chatInput.value = '';
+        // 3. Format Bullet point (* atau - di awal baris jadi •)
+        html = html.replace(/^[\*\-]\s+/gm, '• ');
 
-    const loading = addBubble('Sedang mencari...', 'bot-message');
+        // 4. Format Markdown Link [Judul](URL)
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline; font-weight: bold;">$1</a>');
 
-    try {
-        const res = await fetch('/api/chatbot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ message }),
-        });
-
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-
-        const data = await res.json();
-        loading.textContent = data.reply;
-    } catch (err) {
-        console.error(err);
-        loading.textContent = 'Maaf, terjadi kesalahan. Coba lagi sebentar ya.';
+        return html;
     }
-}
+
+    // Riwayat chat dari sessionStorage agar obrolan nyambung
+    let chatHistory = JSON.parse(sessionStorage.getItem('jibot_history') || '[]');
+
+    function resetChat() {
+        sessionStorage.removeItem('jibot_history');
+        chatHistory = [];
+        chatBody.innerHTML = `
+            <div class="chat-message bot-message">
+                Halo! Ada yang bisa dibantu hari ini?
+            </div>
+        `;
+    }
+
+    function addBubble(text, type) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('chat-message', type);
+        bubble.innerHTML = formatChatText(text);
+        chatBody.appendChild(bubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return bubble;
+    }
+
+    // Tampilkan riwayat chat sebelumnya jika ada di sessionStorage
+    if (chatHistory.length > 0) {
+        chatHistory.forEach(item => {
+            const type = item.role === 'user' ? 'user-message' : 'bot-message';
+            addBubble(item.text, type);
+        });
+    }
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message === '') return;
+
+        addBubble(message, 'user-message');
+        chatInput.value = '';
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+
+        const loading = addBubble('Sedang mencari...', 'bot-message');
+
+        try {
+            const res = await fetch('/api/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    message: message,
+                    history: chatHistory
+                }),
+            });
+
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            const data = await res.json();
+            loading.innerHTML = formatChatText(data.reply);
+
+            // Simpan percakapan ke riwayat lokal dan sessionStorage
+            chatHistory.push({ role: 'user', text: message });
+            chatHistory.push({ role: 'model', text: data.reply });
+            sessionStorage.setItem('jibot_history', JSON.stringify(chatHistory));
+        } catch (err) {
+            console.error(err);
+            loading.textContent = 'Maaf, terjadi kesalahan. Coba lagi sebentar ya.';
+        } finally {
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            chatInput.focus();
+        }
+    }
 
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('keydown', function(e) {

@@ -16,3 +16,5 @@
         </a>
     @endforeach
 </div>
+
+@include('chatbot')

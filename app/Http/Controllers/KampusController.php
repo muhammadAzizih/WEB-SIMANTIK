@@ -42,13 +42,14 @@ class KampusController extends Controller
         if (!empty($data['kota']))     $filters[] = '?k ck:kota ' . F::lit($data['kota']) . ' .';
 
         if (!empty($data['q'])) {
-              // awal kata; karakter khusus regex di-escape
+            // Filter pencarian termasuk kampus cabang
             $esc = preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', Str::lower($data['q']));
             $q   = F::lit('\b' . $esc);
 
             $filters[] = "FILTER(REGEX(STR(?nama), $q, \"i\") || REGEX(STR(?singkatan), $q, \"i\")"
             . " || REGEX(STR(?kota), $q, \"i\") || REGEX(STR(?provinsi), $q, \"i\")"
-            . " || EXISTS { ?pq ck:diselenggarakanOleh ?k ; ck:namaProdi ?np . FILTER(REGEX(?np, $q, \"i\")) })";
+            . " || EXISTS { ?pq ck:diselenggarakanOleh ?k ; ck:namaProdi ?np . FILTER(REGEX(?np, $q, \"i\")) }"
+            . " || EXISTS { ?lc a ck:LokasiKampus ; ck:lokasiDari ?k . OPTIONAL { ?lc ck:namaLokasi ?nlc } OPTIONAL { ?lc ck:kota ?klc } FILTER(REGEX(STR(?nlc), $q, \"i\") || REGEX(STR(?klc), $q, \"i\")) })";
        }
 
         // Filter jenjang / prodi: kampus harus punya minimal 1 prodi AKTIF yang cocok
@@ -132,51 +133,83 @@ SPARQL;
     // fiz, aku (yoan) nambah ini untuk search ya
 
     // fiz, yoan, aku (hendri) kuubah yah suggestions pakai CONTAINS ke REGEX 
+    // Suggestions pencarian kampus dan kampus cabang
     public function suggestions(Request $request): JsonResponse
     {
         $q = Str::lower(trim((string) $request->query('q', '')));
 
         $filter = '';
 
-if ($q !== '') {
-    // awal kata, karakter khusus regex di-escape
-    $pattern = '\b' . preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', $q);
-    $literal = F::lit($pattern);
+        if ($q !== '') {
+            $pattern = '\b' . preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', $q);
+            $literal = F::lit($pattern);
 
-    $filter = "FILTER(
-        REGEX(STR(?nama), $literal, \"i\") ||
-        REGEX(STR(?singkatan), $literal, \"i\") ||
-        REGEX(STR(?kota), $literal, \"i\")
-    )";
-}
+            $filter = "FILTER(
+                REGEX(STR(?nama), $literal, \"i\") ||
+                REGEX(STR(?singkatan), $literal, \"i\") ||
+                REGEX(STR(?kota), $literal, \"i\") ||
+                REGEX(STR(COALESCE(?namaCabang, \"\")), $literal, \"i\") ||
+                REGEX(STR(COALESCE(?kotaCabang, \"\")), $literal, \"i\")
+            )";
+        }
 
         $query = <<<SPARQL
-        SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?provinsi
+        SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?provinsi ?namaCabang ?kotaCabang
         WHERE {
             ?k a ck:Institusi ;
-            ck:kodePT ?kode ;
-            ck:namaInstitusi ?nama ;
-            ck:singkatan ?singkatan ;
-            ck:kota ?kota ;
-            ck:provinsi ?provinsi .
+               ck:kodePT ?kode ;
+               ck:namaInstitusi ?nama ;
+               ck:singkatan ?singkatan ;
+               ck:kota ?kota ;
+               ck:provinsi ?provinsi .
+
+            OPTIONAL {
+                ?lokCab a ck:LokasiKampus ;
+                        ck:lokasiDari ?k .
+                OPTIONAL { ?lokCab ck:namaLokasi ?namaCabang }
+                OPTIONAL { ?lokCab ck:kota ?kotaCabang }
+            }
 
             $filter
         }
         ORDER BY ?nama
-        LIMIT 5
+        LIMIT 10
         SPARQL;
 
         $rows = $this->fuseki->select($query);
 
-        return response()->json(array_map(fn ($r) => [
-            'id' => $r['kode'],
-            'nama' => $r['nama'],
-            'singkatan' => $r['singkatan'],
-            'kota' => $r['kota'],
-            'provinsi' => Str::of($r['provinsi'])
-                ->replaceFirst('Prov. ', '')
-                ->toString(),
-        ], $rows));
+        $results = [];
+        foreach ($rows as $r) {
+            $kode = $r['kode'];
+            if (!isset($results[$kode])) {
+                // Deteksi jika kecocokan berasal dari cabang
+                $matchedCabang = null;
+                if (!empty($r['namaCabang']) && $q !== '' && stripos($r['namaCabang'], $q) !== false) {
+                    $matchedCabang = $r['namaCabang'];
+                } elseif (!empty($r['kotaCabang']) && $q !== '' && stripos($r['kotaCabang'], $q) !== false) {
+                    $matchedCabang = $r['namaCabang'] ?? $r['kotaCabang'];
+                }
+
+                $results[$kode] = [
+                    'id'        => $r['kode'],
+                    'nama'      => $r['nama'],
+                    'singkatan' => $r['singkatan'],
+                    'kota'      => $r['kota'],
+                    'provinsi'  => Str::of($r['provinsi'])
+                        ->replaceFirst('Prov. ', '')
+                        ->toString(),
+                    'cabang'    => $matchedCabang,
+                ];
+            } elseif (empty($results[$kode]['cabang'])) {
+                if (!empty($r['namaCabang']) && $q !== '' && stripos($r['namaCabang'], $q) !== false) {
+                    $results[$kode]['cabang'] = $r['namaCabang'];
+                } elseif (!empty($r['kotaCabang']) && $q !== '' && stripos($r['kotaCabang'], $q) !== false) {
+                    $results[$kode]['cabang'] = $r['namaCabang'] ?? $r['kotaCabang'];
+                }
+            }
+        }
+
+        return response()->json(array_slice(array_values($results), 0, 5));
     }
 
     public function options(Request $request): JsonResponse
@@ -314,15 +347,16 @@ SPARQL));
      */
     private function lokasiTambahan(string $kode, array $k): array
     {
-        $query = 'SELECT ?nama ?alamat ?kota ?provinsi ?lat ?lng WHERE {'
+        $query = 'SELECT ?nama ?alamat ?kota ?provinsi ?lat ?lng ?gambar WHERE {'
             . ' ?k ck:kodePT ' . F::lit($kode) . ' .'
             . ' ?l a ck:LokasiKampus ; ck:lokasiDari ?k .'
             . ' OPTIONAL { ?l ck:namaLokasi ?nama } OPTIONAL { ?l ck:alamatLengkap ?alamat }'
             . ' OPTIONAL { ?l ck:kota ?kota } OPTIONAL { ?l ck:provinsi ?provinsi }'
             . ' OPTIONAL { ?l ck:latitude ?lat } OPTIONAL { ?l ck:longitude ?lng }'
+            . ' OPTIONAL { ?l ck:gambarLokasi ?gambar }'
             . ' } ORDER BY ?nama';
 
-        $rows = $this->cached('lokasi:v1:' . $kode, 600, fn () => $this->fuseki->select($query));
+        $rows = $this->cached('lokasi:v2:' . $kode, 600, fn () => $this->fuseki->select($query));
 
         return array_map(fn ($r, $i) => [
             'nama'     => $r['nama'] ?? ($k['singkatan'] . ' Kampus ' . ($i + 2)),
@@ -333,6 +367,7 @@ SPARQL));
             'alamat'   => $r['alamat'] ?? null,
             'lat'      => isset($r['lat']) ? (float) $r['lat'] : null,
             'lng'      => isset($r['lng']) ? (float) $r['lng'] : null,
+            'gambar'   => $r['gambar'] ?? null,
         ], $rows, array_keys($rows));
     }
 

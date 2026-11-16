@@ -165,6 +165,182 @@
     @media (max-width: 480px) {
         #uni-pagination .pg-btn { min-width: 38px; height: 38px; padding: 0 8px; font-size: 14px; }
     }
+
+    /* LAPTOP */
+    @media (max-width: 1100px) {
+        .container {
+            padding: 35px 4vw;
+        }
+
+        .uni-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .uni-name {
+            font-size: 16px;
+        }
+    }
+
+    /* TABLET */
+    @media (max-width: 768px) {
+        .container {
+            padding: 30px 4vw;
+        }
+
+        .uni-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .card-img {
+            height: 140px;
+        }
+
+        .card-body {
+            padding: 10px;
+        }
+
+        .card-header {
+            height: auto;
+            min-height: 50px;
+            gap: 8px;
+        }
+
+        .uni-name {
+            font-size: 15px;
+        }
+
+        .info-box {
+            padding: 10px;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+        }
+
+        .btn-detail {
+            padding: 9px 0;
+            font-size: 13px;
+        }
+
+        .jelajahi-section {
+            margin-top: 50px;
+        }
+
+        .jelajahi-section h2 {
+            font-size: 32px;
+        }
+
+        #map {
+            height: 400px;
+        }
+    }
+
+    /* RESPONSIVE HP */
+    @media (max-width: 480px) {
+        .container {
+            padding: 22px 14px;
+        }
+
+        .uni-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .card-img {
+            height: 190px;
+        }
+
+        .card-body {
+            padding: 13px;
+        }
+
+        .card-header {
+            height: auto;
+            min-height: 40px;
+            margin-bottom: 10px;
+        }
+
+        .uni-name {
+            font-size: 16px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 4px 7px;
+        }
+
+        .info-box {
+            padding: 11px;
+            font-size: 12px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .btn-detail {
+            padding: 10px 0;
+            font-size: 13px;
+        }
+
+        .jelajahi-section {
+            margin-top: 40px;
+            margin-bottom: 25px;
+        }
+
+        .jelajahi-section h2 {
+            font-size: 26px;
+            margin-bottom: 16px;
+        }
+
+        #map {
+            height: 320px;
+            border-radius: 14px;
+        }
+
+        #uni-pagination {
+            gap: 5px !important;
+        }
+
+        #uni-pagination .pg-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 8px;
+            font-size: 13px;
+        }
+    }
+
+    /* HP KECIL */
+    @media (max-width: 360px) {
+        .container {
+            padding: 18px 10px;
+        }
+
+        .card-img {
+            height: 160px;
+        }
+
+        .uni-name {
+            font-size: 14px;
+        }
+
+        .info-box {
+            font-size: 11px;
+        }
+
+        .jelajahi-section h2 {
+            font-size: 23px;
+        }
+
+        #map {
+            height: 280px;
+        }
+    }
     </style>
     <div class="container">
         <div class="uni-grid" id="uni-grid"></div>

@@ -103,6 +103,9 @@
     const ukt = k.ukt
       ? `<p style="color:#6b7280;">Rentang UKT</p><p class="ukt-price">${esc(k.ukt)}</p>`
       : `<p style="color:#6b7280;">Akreditasi</p><p class="ukt-price">${esc(k.akreditasi || '-')}</p>`;
+    const cabangBadge = k.cabang
+      ? `<div style="margin: 4px 0 6px 0;"><span class="badge" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; display:inline-block;">📍 Cabang: ${esc(k.cabang)}</span></div>`
+      : '';
     return `
       <div class="uni-card">
         <div>
@@ -112,6 +115,7 @@
               <h3 class="uni-name">${esc(k.nama)}</h3>
               <span class="badge">${esc(k.singkatan)}</span>
             </div>
+            ${cabangBadge}
             <div class="info-box">
               <div class="info-left">
                 <p style="font-weight:bold;">${k.fakultas} Fakultas</p>
@@ -201,8 +205,22 @@
   /* ---------- Kolom cari (atas) ---------- */
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
-    const doSearch = () => { state.q = searchInput.value.trim(); state.page = 1; loadKampus(); };
-    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+    const doSearch = () => {
+      state.q = searchInput.value.trim();
+      state.page = 1;
+      const box = document.getElementById('search-suggestions');
+      if (box) box.classList.remove('show');
+      loadKampus();
+    };
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const box = document.getElementById('search-suggestions');
+        const first = box ? box.querySelector('.suggestion-item') : null;
+        if (!box || !box.classList.contains('show') || !first) {
+          doSearch();
+        }
+      }
+    });
     const iconBox = document.querySelector('.search-icon-box');
     if (iconBox) { iconBox.style.cursor = 'pointer'; iconBox.addEventListener('click', doSearch); }
   }

@@ -10,7 +10,7 @@ class DbpediaService
 {
     private const ENDPOINT = 'https://dbpedia.org/sparql';
 
-    //buat ambil data dari DBpedia (eksternal)
+    // Ini fungsi untuk ambil data eksternal dari DBpedia (Linked Open Data) berdasarkan nama kampus
     public function getInfo(string $namaKampus): ?array
     {
         $cleanNama = trim($namaKampus);
@@ -25,10 +25,12 @@ class DbpediaService
         });
     }
 
+    // Ini fungsi dan kueri SPARQL eksternal ke DBpedia untuk ambil data rektor, motto, dan jumlah mahasiswa
     private function querySparql(string $namaKampus): ?array
     {
         $escaped = addslashes($namaKampus);
 
+        // Ini query SPARQL untuk panggil data eksternal dari DBpedia
         $sparql = <<<SPARQL
 PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX dbp: <http://dbpedia.org/property/>

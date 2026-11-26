@@ -39,4 +39,8 @@ return [
         'endpoint' => env('FUSEKI_ENDPOINT', 'http://localhost:3030/cariKampus/sparql'),
     ],
 
+        'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

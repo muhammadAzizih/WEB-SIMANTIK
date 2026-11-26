@@ -34,3 +34,5 @@
         </div>
     @endif -->
 </div>
+
+@include('chatbot')

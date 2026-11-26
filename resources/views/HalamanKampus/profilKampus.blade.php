@@ -215,18 +215,37 @@
     </div>
 
     @if(count($semuaLokasi) > 1)
+        @php
+            $cabangList = array_slice($semuaLokasi, 1);
+            $isSingle = count($cabangList) === 1;
+        @endphp
         <div class="lokasi-cabang-grid">
-            @foreach(array_slice($semuaLokasi, 1) as $idx => $cabang)
-                <div class="lokasi-cabang-card">
-                    <span class="lokasi-badge" style="background:#f4f4f5;color:#52525b;border-color:#e4e4e7;">Kampus {{ $idx + 2 }}</span>
-                    <h4 style="margin:6px 0 10px;font-size:17px;color:#1a1a1a;">{{ $cabang['nama'] }}</h4>
-                    <p style="margin:0 0 10px;font-size:13.5px;color:#444;">
-                        <b>{{ $cabang['kota'] }}, {{ $cabang['provinsi'] }}</b>
-                        @if(!empty($cabang['alamat']))<br>{{ $cabang['alamat'] }}@endif
-                    </p>
-                    @if(!empty($cabang['lat']) && !empty($cabang['lng']))
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ $cabang['lat'] }},{{ $cabang['lng'] }}" target="_blank" rel="noopener" style="color:var(--o);font-size:13px;font-weight:700;text-decoration:none;">Buka Google Maps &nearr;</a>
+            @foreach($cabangList as $idx => $cabang)
+                <div class="lokasi-cabang-card {{ $isSingle ? 'lokasi-cabang-card-single' : '' }}">
+                    @if(!empty($cabang['gambar']))
+                        <div class="lokasi-cabang-img-wrap">
+                            <img src="{{ $cabang['gambar'] }}" 
+                                 alt="{{ $cabang['nama'] }}" 
+                                 referrerpolicy="no-referrer" 
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x350/fcebd8/ee7f32?text={{ urlencode($cabang['nama']) }}';">
+                        </div>
                     @endif
+                    <div class="lokasi-cabang-content">
+                        <div>
+                            <span class="lokasi-cabang-badge">Kampus {{ $idx + 2 }}</span>
+                            <h4 class="lokasi-cabang-title">{{ $cabang['nama'] }}</h4>
+                            <p class="lokasi-cabang-desc">
+                                <b>{{ $cabang['kota'] }}, {{ $cabang['provinsi'] }}</b>
+                                @if(!empty($cabang['alamat']))<br>{{ $cabang['alamat'] }}@endif
+                            </p>
+                        </div>
+                        @if(!empty($cabang['lat']) && !empty($cabang['lng']))
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ $cabang['lat'] }},{{ $cabang['lng'] }}" target="_blank" rel="noopener" class="btn-cabang-maps">
+                                Buka Google Maps &nearr;
+                            </a>
+                        @endif
+                    </div>
                 </div>
             @endforeach
         </div>

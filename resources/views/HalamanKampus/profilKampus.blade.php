@@ -224,7 +224,11 @@
                 <div class="lokasi-cabang-card {{ $isSingle ? 'lokasi-cabang-card-single' : '' }}">
                     @if(!empty($cabang['gambar']))
                         <div class="lokasi-cabang-img-wrap">
-                            <img src="{{ $cabang['gambar'] }}" alt="{{ $cabang['nama'] }}" loading="lazy">
+                            <img src="{{ $cabang['gambar'] }}" 
+                                 alt="{{ $cabang['nama'] }}" 
+                                 referrerpolicy="no-referrer" 
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x350/fcebd8/ee7f32?text={{ urlencode($cabang['nama']) }}';">
                         </div>
                     @endif
                     <div class="lokasi-cabang-content">

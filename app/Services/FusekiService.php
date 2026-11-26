@@ -7,13 +7,13 @@ use RuntimeException;
 
 class FusekiService
 {
+    // Ini prefix namespace ontologi W3C dan ontologi lokal carikampus untuk kueri SPARQL
     public const PREFIXES = <<<'SPARQL'
 PREFIX ck:   <https://carikampus.id/ontology/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SPARQL;
 
-    
-     //Jalankan query SELECT ke Fuseki
+    // Ini fungsi untuk kirim dan jalankan kueri SPARQL SELECT ke Apache Jena Fuseki lokal (port 3030)
     public function select(string $query): array
     {
         if (!config('services.fuseki.endpoint')) {

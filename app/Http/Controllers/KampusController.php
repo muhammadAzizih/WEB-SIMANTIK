@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\FusekiService as F;
 use App\Services\DbpediaService;
+use App\Services\SemanticSearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -13,13 +14,11 @@ class KampusController extends Controller
 {
     public function __construct(
         private F $fuseki,
-        private DbpediaService $dbpedia
+        private DbpediaService $dbpedia,
+        private SemanticSearchService $searchService
     ) {}
 
-    /**
-     * GET /api/kampus
-     * Query: kategori, jenis, provinsi, kota, jenjang, prodi, q, page, per_page
-     */
+    // Ini fungsi utama untuk filter pencarian kampus berdasarkan jenis, provinsi, kota, prodi, dan kueri semantik
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -42,17 +41,13 @@ class KampusController extends Controller
         if (!empty($data['kota']))     $filters[] = '?k ck:kota ' . F::lit($data['kota']) . ' .';
 
         if (!empty($data['q'])) {
-            // Filter pencarian termasuk kampus cabang
-            $esc = preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', Str::lower($data['q']));
-            $q   = F::lit('\b' . $esc);
+            $sparqlFilter = $this->searchService->buildSparqlFilter($data['q']);
+            if ($sparqlFilter !== '') {
+                $filters[] = $sparqlFilter;
+            }
+        }
 
-            $filters[] = "FILTER(REGEX(STR(?nama), $q, \"i\") || REGEX(STR(?singkatan), $q, \"i\")"
-            . " || REGEX(STR(?kota), $q, \"i\") || REGEX(STR(?provinsi), $q, \"i\")"
-            . " || EXISTS { ?pq ck:diselenggarakanOleh ?k ; ck:namaProdi ?np . FILTER(REGEX(?np, $q, \"i\")) }"
-            . " || EXISTS { ?lc a ck:LokasiKampus ; ck:lokasiDari ?k . OPTIONAL { ?lc ck:namaLokasi ?nlc } OPTIONAL { ?lc ck:kota ?klc } FILTER(REGEX(STR(?nlc), $q, \"i\") || REGEX(STR(?klc), $q, \"i\")) })";
-       }
-
-        // Filter jenjang / prodi: kampus harus punya minimal 1 prodi AKTIF yang cocok
+        // Ini kueri pola graf untuk filter kampus yang menyelenggarakan prodi aktif (relasi ck:diselenggarakanOleh)
         if (!empty($data['jenjang']) || !empty($data['prodi'])) {
             $cond = '?pf ck:diselenggarakanOleh ?k ; ck:statusProdi "Aktif" .';
             if (!empty($data['jenjang'])) $cond .= ' ?pf ck:jenjang ' . F::lit($data['jenjang']) . ' .';
@@ -62,14 +57,15 @@ class KampusController extends Controller
 
         $where = implode("\n  ", $filters);
 
-        // GROUP BY hanya ?k + SAMPLE(): kalau di Fuseki satu kampus punya >1 nilai (mis. data lama + baru
-        // ikut ter-load), card tidak ikut dobel. Alias ...X dikembalikan ke nama asli di bawah.
+        // Ini query SPARQL utama ke Fuseki untuk ambil data kartu kampus lengkap dengan hitungan fakultas dan prodi
         $query = <<<SPARQL
-SELECT ?k (SAMPLE(?kode) AS ?kodeX) (SAMPLE(?nama) AS ?namaX) (SAMPLE(?singkatan) AS ?singkatanX) (SAMPLE(?kategori) AS ?kategoriX) (SAMPLE(?jenis) AS ?jenisX) (SAMPLE(?provinsi) AS ?provinsiX) (SAMPLE(?kota) AS ?kotaX)
-       (SAMPLE(?akreditasi) AS ?akreditasiX) (SAMPLE(?website) AS ?websiteX) (SAMPLE(?deskripsi) AS ?deskripsiX) (SAMPLE(?gambar) AS ?gambarX) (SAMPLE(?rentangUKT) AS ?rentangUKTX) (SAMPLE(?biayaMin) AS ?biayaMinX) (SAMPLE(?biayaMax) AS ?biayaMaxX)
+PREFIX ck: <https://carikampus.id/ontology/>
+SELECT ?kode ?nama ?singkatan ?kategori ?jenis ?provinsi ?kota 
+       ?akreditasi ?website ?deskripsi ?gambar ?rentangUKT ?biayaMin ?biayaMax
        (COUNT(DISTINCT ?fakultas) AS ?jmlFakultas)
        (COUNT(DISTINCT ?prodi) AS ?jmlProdi)
 WHERE {
+  $where
   ?k a ck:Institusi ;
      ck:kodePT ?kode ;
      ck:namaInstitusi ?nama ;
@@ -78,6 +74,7 @@ WHERE {
      ck:jenisInstitusi ?jenis ;
      ck:provinsi ?provinsi ;
      ck:kota ?kota .
+
   OPTIONAL { ?k ck:statusAkreditasi ?akreditasi }
   OPTIONAL { ?k ck:websiteResmi ?website }
   OPTIONAL { ?k ck:deskripsi ?deskripsi }
@@ -90,10 +87,9 @@ WHERE {
            ck:statusProdi "Aktif" ;
            ck:fakultas ?fakultas .
   }
-  $where
 }
-GROUP BY ?k
-ORDER BY ?namaX
+GROUP BY ?kode ?nama ?singkatan ?kategori ?jenis ?provinsi ?kota ?akreditasi ?website ?deskripsi ?gambar ?rentangUKT ?biayaMin ?biayaMax
+ORDER BY ?nama
 SPARQL;
 
         $rows = $this->cached('kampus:v4:' . md5($query), 600, fn () => array_map(
@@ -110,13 +106,23 @@ SPARQL;
             return $r;
         })->values()->all();
 
+        $matchedCabangMap = [];
+        if (!empty($data['q'])) {
+            $matches = $this->searchService->resolveCampusMatches($data['q']);
+            foreach ($matches as $info) {
+                if (!empty($info['matched_cabang']) && !empty($info['campus']['kode'])) {
+                    $matchedCabangMap[$info['campus']['kode']] = $info['matched_cabang'];
+                }
+            }
+        }
+
         $perPage = (int) ($data['per_page'] ?? 12);
         $page    = (int) ($data['page'] ?? 1);
         $total   = count($rows);
 
         $items = collect($rows)
             ->slice(($page - 1) * $perPage, $perPage)
-            ->map(fn ($r) => $this->toCard($r))
+            ->map(fn ($r) => $this->toCard($r, $matchedCabangMap[$r['kode']] ?? null))
             ->values();
 
         return response()->json([
@@ -130,88 +136,16 @@ SPARQL;
         ]);
     }
 
-    // fiz, aku (yoan) nambah ini untuk search ya
-
-    // fiz, yoan, aku (hendri) kuubah yah suggestions pakai CONTAINS ke REGEX 
-    // Suggestions pencarian kampus dan kampus cabang
+    // Ini fungsi autocomplete pencarian cepat (bisa cari nama kampus, nama prodi, maupun kampus cabang PSDKU)
     public function suggestions(Request $request): JsonResponse
     {
-        $q = Str::lower(trim((string) $request->query('q', '')));
+        $q = (string) $request->query('q', '');
+        $results = $this->searchService->getSuggestions($q, 7);
 
-        $filter = '';
-
-        if ($q !== '') {
-            $pattern = '\b' . preg_replace('/[\\\\|.?*+(){}\[\]^$\-]/', '\\\\$0', $q);
-            $literal = F::lit($pattern);
-
-            $filter = "FILTER(
-                REGEX(STR(?nama), $literal, \"i\") ||
-                REGEX(STR(?singkatan), $literal, \"i\") ||
-                REGEX(STR(?kota), $literal, \"i\") ||
-                REGEX(STR(COALESCE(?namaCabang, \"\")), $literal, \"i\") ||
-                REGEX(STR(COALESCE(?kotaCabang, \"\")), $literal, \"i\")
-            )";
-        }
-
-        $query = <<<SPARQL
-        SELECT DISTINCT ?kode ?nama ?singkatan ?kota ?provinsi ?namaCabang ?kotaCabang
-        WHERE {
-            ?k a ck:Institusi ;
-               ck:kodePT ?kode ;
-               ck:namaInstitusi ?nama ;
-               ck:singkatan ?singkatan ;
-               ck:kota ?kota ;
-               ck:provinsi ?provinsi .
-
-            OPTIONAL {
-                ?lokCab a ck:LokasiKampus ;
-                        ck:lokasiDari ?k .
-                OPTIONAL { ?lokCab ck:namaLokasi ?namaCabang }
-                OPTIONAL { ?lokCab ck:kota ?kotaCabang }
-            }
-
-            $filter
-        }
-        ORDER BY ?nama
-        LIMIT 10
-        SPARQL;
-
-        $rows = $this->fuseki->select($query);
-
-        $results = [];
-        foreach ($rows as $r) {
-            $kode = $r['kode'];
-            if (!isset($results[$kode])) {
-                // Deteksi jika kecocokan berasal dari cabang
-                $matchedCabang = null;
-                if (!empty($r['namaCabang']) && $q !== '' && stripos($r['namaCabang'], $q) !== false) {
-                    $matchedCabang = $r['namaCabang'];
-                } elseif (!empty($r['kotaCabang']) && $q !== '' && stripos($r['kotaCabang'], $q) !== false) {
-                    $matchedCabang = $r['namaCabang'] ?? $r['kotaCabang'];
-                }
-
-                $results[$kode] = [
-                    'id'        => $r['kode'],
-                    'nama'      => $r['nama'],
-                    'singkatan' => $r['singkatan'],
-                    'kota'      => $r['kota'],
-                    'provinsi'  => Str::of($r['provinsi'])
-                        ->replaceFirst('Prov. ', '')
-                        ->toString(),
-                    'cabang'    => $matchedCabang,
-                ];
-            } elseif (empty($results[$kode]['cabang'])) {
-                if (!empty($r['namaCabang']) && $q !== '' && stripos($r['namaCabang'], $q) !== false) {
-                    $results[$kode]['cabang'] = $r['namaCabang'];
-                } elseif (!empty($r['kotaCabang']) && $q !== '' && stripos($r['kotaCabang'], $q) !== false) {
-                    $results[$kode]['cabang'] = $r['namaCabang'] ?? $r['kotaCabang'];
-                }
-            }
-        }
-
-        return response()->json(array_slice(array_values($results), 0, 5));
+        return response()->json($results);
     }
 
+    // Ini query SPARQL ke Fuseki untuk isi pilihan dropdown filter (jenis institusi, provinsi, kota, jenjang)
     public function options(Request $request): JsonResponse
     {
         $provinsi = $request->query('provinsi');
@@ -236,10 +170,7 @@ SPARQL;
         return response()->json($data);
     }
 
-    /**
-     * GET /api/prodi?q=inform&jenjang=S1
-     * Autocomplete prodi (ada ~12 ribu baris, jadi tidak diload semua).
-     */
+    // Ini query SPARQL ke Fuseki untuk cari nama program studi aktif buat pilihan filter prodi
     public function prodi(Request $request): JsonResponse
     {
         $q       = Str::lower(trim((string) $request->query('q', '')));
@@ -256,10 +187,7 @@ SPARQL;
         return response()->json(array_column($rows, 'v'));
     }
 
-    /**
-     * GET /api/kampus/peta
-     * Semua kampus + koordinat untuk marker Leaflet.
-     */
+    // Ini query SPARQL ke Fuseki untuk ambil koordinat lokasi (ck:latitude & ck:longitude) seluruh kampus ke peta Leaflet.js
     public function peta(): JsonResponse
     {
         $rows = $this->cached('kampus:v2:peta', 3600, fn () => $this->fuseki->select(<<<'SPARQL'
@@ -286,10 +214,7 @@ SPARQL));
         ], $rows));
     }
 
-    /* ===================================================================
-     |  HALAMAN DETAIL: /kampus?id=KODEPT , /fakultas?id=..&nama=.. , /prodi?id=..&kode=..
-     =================================================================== */
-
+    // Ini fungsi untuk menampilkan halaman profil detail kampus
     public function showKampus(Request $request)
     {
         $kode  = $this->kodeDariRequest($request);
@@ -310,6 +235,7 @@ SPARQL));
             'prodi'    => $prodi,
             'ukt'      => $this->uktKampus($kode),
             'lokasi'   => $this->lokasiTambahan($kode, $k),
+            // Ini panggil data eksternal dari DBpedia untuk ambil nama rektor dan motto kampus
             'dbpedia'  => $this->dbpedia->getInfo($k['nama'] ?? ''),
         ]);
     }
@@ -341,10 +267,7 @@ SPARQL));
         return view('HalamanKampus.prodi', compact('k', 'kode', 'p'));
     }
 
-    /**
-     * Lokasi kampus TAMBAHAN (kampus ke-2, ke-3, dst). Lokasi utama tetap dari data institusi.
-     * Di TTL: resource bertipe ck:LokasiKampus yang menunjuk institusinya lewat ck:lokasiDari.
-     */
+    // Ini query SPARQL ke Fuseki untuk ambil data kampus cabang / PSDKU (relasi ck:lokasiDari)
     private function lokasiTambahan(string $kode, array $k): array
     {
         $query = 'SELECT ?nama ?alamat ?kota ?provinsi ?lat ?lng ?gambar WHERE {'
@@ -380,6 +303,7 @@ SPARQL));
         return $id;
     }
 
+    // Ini query SPARQL ke Fuseki untuk ambil profil lengkap 1 kampus berdasarkan kode PT
     private function institusi(string $kode): array
     {
         $query = 'SELECT ?nama ?singkatan ?kategori ?jenis ?provinsi ?kota ?kecamatan ?alamat ?kodePos ?lat ?lng'
@@ -432,7 +356,7 @@ SPARQL));
   
     }
 
-    /** Semua prodi AKTIF milik satu kampus, terurut fakultas > jenjang > nama. */
+    // Ini query SPARQL ke Fuseki untuk ambil seluruh daftar program studi aktif di kampus terkait
     private function prodiKampus(string $kode): array
     {
         $query = 'SELECT ?kode ?nama ?jenjang ?fakultas ?akreditasi WHERE {'
@@ -459,7 +383,7 @@ SPARQL));
         ], $rows);
     }
 
-    /** UKT per kelompok milik satu kampus. */
+    // Ini query SPARQL ke Fuseki untuk ambil rincian matriks biaya UKT (kelompok 1 sampai 5+)
     private function uktKampus(string $kode): array
     {
         $query = 'SELECT ?kelompok ?rentang ?dasar WHERE {'
@@ -486,7 +410,7 @@ SPARQL));
         return Cache::remember($key, $ttl, $fn);
     }
   //fallback untuk data kampus yang kosong
-    private function toCard(array $r): array
+    private function toCard(array $r, ?string $cabang = null): array
     {
         $provinsi = Str::of($r['provinsi'])->replaceFirst('Prov. ', '')->toString();
 
@@ -512,6 +436,7 @@ SPARQL));
             'jenis'             => $r['jenis'] ?? 'Universitas',
             'kota'              => $r['kota'] ?? '-',
             'provinsi'          => $provinsi ?: '-',
+            'cabang'            => $cabang,
             'akreditasi'        => $r['akreditasi'] ?? 'Belum Terakreditasi',
             'website'           => $r['website'] ?? null,
             'fakultas'          => (int) ($r['jmlFakultas'] ?? 0),
@@ -523,7 +448,7 @@ SPARQL));
             'gambar'            => $gambar,
             'url'               => url('/kampus?id=' . $r['kode']),
         ];
-}
+    }
 
     /** http:// -> https:// supaya gambar tidak diblokir browser (mixed content). */
     private function httpsUrl(?string $url): ?string

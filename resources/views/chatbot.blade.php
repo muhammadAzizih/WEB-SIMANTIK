@@ -186,12 +186,18 @@
               <div class="chatbot-avatar" style="overflow: hidden; background: #fff;">
     <img src="https://thumbs.dreamstime.com/b/d-smart-cute-robot-head-graduation-cap-minimal-style-isolated-background-chat-bot-icon-ai-fueled-customer-support-288448884.jpg" 
          alt="jiBot Avatar" 
+         referrerpolicy="no-referrer"
          style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
 </div>
                 <span class="chatbot-title">jiBot</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <button title="Bersihkan obrolan" onclick="resetChat()" style="background: transparent; border: none; color: white; cursor: pointer; font-size: 14px; padding: 2px 4px; opacity: 0.85;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">🔄</button>
+                <button title="Bersihkan obrolan" onclick="resetChat()" style="background: transparent; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0.85;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                </button>
                 <button class="chatbot-close-btn" onclick="toggleChatbot()">&times;</button>
             </div>
         </div>
@@ -253,6 +259,11 @@
     // Fungsi format teks bot (mengubah markdown **tebal**, bullet point, dan link)
     function formatChatText(text) {
         if (!text) return '';
+        // 0. Bersihkan seluruh karakter emoji / pictograph
+        try {
+            text = text.replace(/[\p{Extended_Pictographic}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+        } catch (e) {}
+
         // 1. Escape HTML agar aman
         let html = text
             .replace(/&/g, '&amp;')
@@ -312,6 +323,10 @@
 
         const loading = addBubble('Sedang mencari...', 'bot-message');
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCampusId = urlParams.get('id');
+        const currentProdiKode = urlParams.get('kode');
+
         try {
             const res = await fetch('/api/chatbot', {
                 method: 'POST',
@@ -321,7 +336,9 @@
                 },
                 body: JSON.stringify({ 
                     message: message,
-                    history: chatHistory
+                    history: chatHistory,
+                    campus_id: currentCampusId || null,
+                    prodi_kode: currentProdiKode || null
                 }),
             });
 

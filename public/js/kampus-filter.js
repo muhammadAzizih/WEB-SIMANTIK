@@ -103,6 +103,9 @@
     const ukt = k.ukt
       ? `<p style="color:#6b7280;">Rentang UKT</p><p class="ukt-price">${esc(k.ukt)}</p>`
       : `<p style="color:#6b7280;">Akreditasi</p><p class="ukt-price">${esc(k.akreditasi || '-')}</p>`;
+    const cabangBadge = k.cabang
+      ? `<div style="margin: 4px 0 6px 0;"><span class="badge" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; display:inline-block;">📍 Cabang: ${esc(k.cabang)}</span></div>`
+      : '';
     return `
       <div class="uni-card">
         <div>
@@ -112,6 +115,7 @@
               <h3 class="uni-name">${esc(k.nama)}</h3>
               <span class="badge">${esc(k.singkatan)}</span>
             </div>
+            ${cabangBadge}
             <div class="info-box">
               <div class="info-left">
                 <p style="font-weight:bold;">${k.fakultas} Fakultas</p>
